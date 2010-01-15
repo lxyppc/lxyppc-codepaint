@@ -42,5 +42,5 @@ public:
     char*       m_textSrc;
     size_t      m_textSrcLen;
 public:
-    CRichEditCtrl m_resultView;
+    CEdit       m_resultView;
 };

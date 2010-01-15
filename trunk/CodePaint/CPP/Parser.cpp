@@ -703,7 +703,18 @@ char *yytext;
 #line 1 "Parser.l"
 #define INITIAL 0
 #line 2 "Parser.l"
-
+/************************************************************
+*  Company :    lxyppc
+* 
+*  Filename:    Parser.l
+*  Summary :    Lexical compiler description file
+* 
+*  Version :    1.0
+*  Author :     lxyppc
+*  CreateDate:  2009-9-18
+* 
+*  All rights reserved.
+*************************************************************/
 #include "CodePaint.h"
 
 /** Over ride the default input method
@@ -748,7 +759,7 @@ extern  char*   currentFormat;
 /* State for process double quote strign */
 #define SQuoteString 4
 
-#line 752 "Parser.cpp"
+#line 763 "Parser.cpp"
 
 /* Macros after this point can all be overridden by user definitions in
  * section 1.
@@ -899,10 +910,10 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
 
-#line 74 "Parser.l"
+#line 85 "Parser.l"
 
                     /* Line Comment process */
-#line 906 "Parser.cpp"
+#line 917 "Parser.cpp"
 
 	if ( yy_init )
 		{
@@ -987,7 +998,7 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 76 "Parser.l"
+#line 87 "Parser.l"
 { /* Begin line comment */
                         cpSetCodeColor(currentFormat,"comment");
                         DIRECT_OUTPUT;
@@ -997,7 +1008,7 @@ YY_RULE_SETUP
 
 case 2:
 YY_RULE_SETUP
-#line 82 "Parser.l"
+#line 93 "Parser.l"
 {
                         DIRECT_OUTPUT;
                         NewLine(TRUE);
@@ -1005,7 +1016,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 86 "Parser.l"
+#line 97 "Parser.l"
 {
                         cpResetCodeColor(currentFormat);
                         DIRECT_OUTPUT;
@@ -1015,7 +1026,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 92 "Parser.l"
+#line 103 "Parser.l"
 {
                         DIRECT_OUTPUT;
                     }
@@ -1024,7 +1035,7 @@ YY_RULE_SETUP
 /* Block Comment process */
 case 5:
 YY_RULE_SETUP
-#line 98 "Parser.l"
+#line 109 "Parser.l"
 {   /* Block Comment start */ 
                         cpSetCodeColor(currentFormat,"comment");
                         DIRECT_OUTPUT;
@@ -1034,7 +1045,7 @@ YY_RULE_SETUP
 
 case 6:
 YY_RULE_SETUP
-#line 104 "Parser.l"
+#line 115 "Parser.l"
 {   /* Block Comment end */   
                         DIRECT_OUTPUT;
                         cpResetCodeColor(currentFormat);
@@ -1043,7 +1054,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 109 "Parser.l"
+#line 120 "Parser.l"
 {   /* Block Comment meet newline */
                         DIRECT_OUTPUT;
                         NewLine(TRUE);
@@ -1051,7 +1062,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 113 "Parser.l"
+#line 124 "Parser.l"
 {   /* Block Comment */ 
                         DIRECT_OUTPUT;
                     }
@@ -1059,7 +1070,7 @@ YY_RULE_SETUP
 /* Block Comment process end */
 case 9:
 YY_RULE_SETUP
-#line 119 "Parser.l"
+#line 130 "Parser.l"
 {   /* pre compile command */
                         PRINTF( (buf,"Get PreCompile: %s", yytext) ); 
                         cpSetCodeColor(currentFormat,"keyword");
@@ -1070,7 +1081,7 @@ YY_RULE_SETUP
 /* Single quote string process */
 case 10:
 YY_RULE_SETUP
-#line 128 "Parser.l"
+#line 139 "Parser.l"
 {   /* Single quote start */
                         PRINTF( (buf,"SString Start") );
                         cpSetCodeColor(currentFormat,"string");
@@ -1080,7 +1091,7 @@ YY_RULE_SETUP
 
 case 11:
 YY_RULE_SETUP
-#line 134 "Parser.l"
+#line 145 "Parser.l"
 { /* Single quote end */ 
                         PRINTF( (buf,"SString Error!") );
                         DIRECT_OUTPUT;
@@ -1090,7 +1101,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 140 "Parser.l"
+#line 151 "Parser.l"
 {
                         PRINTF( (buf,"SString End") );
                         DIRECT_OUTPUT;
@@ -1100,7 +1111,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 146 "Parser.l"
+#line 157 "Parser.l"
 {
                         DIRECT_OUTPUT;
                         PRINTF( (buf,"%s",yytext) );
@@ -1108,7 +1119,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 150 "Parser.l"
+#line 161 "Parser.l"
 {
                         DIRECT_OUTPUT;
                         PRINTF( (buf,"%s",yytext) );
@@ -1118,7 +1129,7 @@ YY_RULE_SETUP
 /* Double quote string process */
 case 15:
 YY_RULE_SETUP
-#line 158 "Parser.l"
+#line 169 "Parser.l"
 {   /* Double quote start */
                         PRINTF( (buf,"DString Start") );
                         cpSetCodeColor(currentFormat,"string");
@@ -1128,7 +1139,7 @@ YY_RULE_SETUP
 
 case 16:
 YY_RULE_SETUP
-#line 164 "Parser.l"
+#line 175 "Parser.l"
 {   /* Double quote end */ 
                         PRINTF( (buf,"DString Error!") );
                         DIRECT_OUTPUT;
@@ -1138,7 +1149,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 170 "Parser.l"
+#line 181 "Parser.l"
 {
                         PRINTF( (buf,"DString End") ); 
                         DIRECT_OUTPUT;
@@ -1148,7 +1159,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 176 "Parser.l"
+#line 187 "Parser.l"
 {
                         PRINTF( (buf,"%s",yytext) );
                         DIRECT_OUTPUT;
@@ -1156,7 +1167,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 180 "Parser.l"
+#line 191 "Parser.l"
 {
                         PRINTF( (buf,"%s",yytext) );
                         DIRECT_OUTPUT;
@@ -1165,12 +1176,12 @@ YY_RULE_SETUP
 /* Double quote string process end*/
 case 20:
 YY_RULE_SETUP
-#line 187 "Parser.l"
+#line 198 "Parser.l"
 {DIRECT_OUTPUT;NewLine(FALSE);}
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 190 "Parser.l"
+#line 201 "Parser.l"
 { /* Keywords for C*/  
                         PRINTF( (buf,"Get Keywords for C: %s", yytext) );
                         cpSetCodeColor(currentFormat,"keyword");
@@ -1180,7 +1191,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 197 "Parser.l"
+#line 208 "Parser.l"
 { /* Keywords for C++ */
                         PRINTF( (buf,"Get Keywords for C++: %s", yytext) );
                         cpSetCodeColor(currentFormat,"keyword");
@@ -1190,7 +1201,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 204 "Parser.l"
+#line 215 "Parser.l"
 { /* Keywords for extension */ 
                         PRINTF( (buf,"Get Extension Keywords: %s", yytext) );
                         cpSetCodeColor(currentFormat,"keyword");
@@ -1200,12 +1211,12 @@ YY_RULE_SETUP
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 212 "Parser.l"
+#line 223 "Parser.l"
 {/* Not used output directly */DIRECT_OUTPUT;}
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 214 "Parser.l"
+#line 225 "Parser.l"
 {    /* Here we get a number! */
                         PRINTF( (buf,"Get Number: %s", yytext) );
                         cpSetCodeColor(currentFormat,"number");
@@ -1215,17 +1226,17 @@ YY_RULE_SETUP
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 221 "Parser.l"
+#line 232 "Parser.l"
 {   /* Match nothing */
                         DIRECT_OUTPUT; 
                     }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 226 "Parser.l"
+#line 237 "Parser.l"
 ECHO;
 	YY_BREAK
-#line 1229 "Parser.cpp"
+#line 1240 "Parser.cpp"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(LineComment):
 case YY_STATE_EOF(BlockComment):
@@ -2115,7 +2126,7 @@ int main()
 	return 0;
 	}
 #endif
-#line 226 "Parser.l"
+#line 237 "Parser.l"
 
 
 

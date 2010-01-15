@@ -1,5 +1,16 @@
 %{
-
+/************************************************************
+*  Company :    lxyppc
+* 
+*  Filename:    Parser.l
+*  Summary :    Lexical compiler description file
+* 
+*  Version :    1.0
+*  Author :     lxyppc
+*  CreateDate:  2009-9-18
+* 
+*  All rights reserved.
+*************************************************************/
 #include "CodePaint.h"
 
 /** Over ride the default input method

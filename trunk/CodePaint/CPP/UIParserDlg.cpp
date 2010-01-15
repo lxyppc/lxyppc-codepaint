@@ -29,7 +29,7 @@ void CUIParserDlg::DoDataExchange(CDataExchange* pDX)
     CDialog::DoDataExchange(pDX);
     DDX_Control(pDX, IDC_RICHEDIT21, m_sourceView);
     DDX_Control(pDX, IDC_LOG, m_log);
-    DDX_Control(pDX, IDC_RICHEDIT22, m_resultView);
+    DDX_Control(pDX, IDC_EDIT1, m_resultView);
 }
 
 BEGIN_MESSAGE_MAP(CUIParserDlg, CDialog)
