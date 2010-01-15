@@ -191,6 +191,9 @@
 			</File>
 		</Filter>
 		<File
+			RelativePath=".\Parser.l">
+		</File>
+		<File
 			RelativePath=".\ReadMe.txt">
 		</File>
 	</Files>

@@ -2,15 +2,18 @@
 #include "CodePaint.h"
 
 
-cpColorMap_t        cpColorMap;
-cpColorFormat_t     cpColorFormat;
+cpColorMap_t            cpColorMap;
+cpColorFormat_t         cpColorFormat;
+vector<cpCodeColor>     cpPosStack;
+vector<cpCodeColor>     cpColorStack;
+
 
 struct {
     char        *name;
     COLORREF    color;
 }colorMap[] = 
 {
-    {"comment",RGB(0,200,0)},
+    {"comment",RGB(0,128,0)},
     {"string",RGB(200,0,0)},
     {"number",RGB(0,0,0)},
     {"keyword",RGB(0,0,255)},
@@ -41,12 +44,18 @@ void    cpInitialColorMap()
     }
 }
 
+void    cpResetColorStack()
+{
+    cpPosStack.clear();
+    cpColorStack.clear();
+}
+
 void    cpSetColor(const string& colorName, COLORREF color)
 {
     cpColorMap[colorName] = color;
 }
 
-void    cpSetCodeColor(const string& formatName, const string& colorName)
+void    cpSetCodeColor(const string& formatName, const string& colorName, BOOL bNeedTrack)
 {
     cpColorFormat_t::iterator it = cpColorFormat.find(formatName);
     if(it == cpColorFormat.end()){
@@ -71,9 +80,18 @@ void    cpSetCodeColor(const string& formatName, const string& colorName)
     char buf[1024] = "";
     sprintf(buf,it->second.set.c_str(),myColor.ref);
     OutputString(buf,0);
+    if(bNeedTrack){
+        cpCodeColor cpColor;
+        cpColor.color = it1->second;
+        cpColor.start = curPos;
+        cpPosStack.push_back(cpColor);
+    }
 }
 
-void    cpResetCodeColor(const string& formatName)
+
+void StringLog(const char* str);
+
+void    cpResetCodeColor(const string& formatName, BOOL bNeedTrack)
 {
     cpColorFormat_t::iterator it = cpColorFormat.find(formatName);
     if(it == cpColorFormat.end()){
@@ -82,4 +100,27 @@ void    cpResetCodeColor(const string& formatName)
     char buf[1024] = "";
     sprintf(buf,it->second.reset.c_str());
     OutputString(buf,0);
+    if(bNeedTrack && cpPosStack.size()){
+        vector<cpCodeColor>::iterator it1 = cpPosStack.begin();
+        it1 += (cpPosStack.size() - 1);
+        if(it1 != cpPosStack.end()){
+            it1->end = curPos;
+            {
+                char buf[1024] = "";
+                sprintf(buf,"Color: 0x%06X, Start: %d, End: %d",
+                    it1->color,it1->start, it1->end);
+                StringLog(buf);
+            }
+            cpColorStack.push_back(*it1);
+            cpPosStack.erase(it1);
+        }
+    }
+}
+
+void    cpGetColorStack(vector<cpCodeColor>& colorStack)
+{
+    colorStack.clear();
+    for(size_t i=0;i<cpColorStack.size();i++){
+        colorStack.push_back(cpColorStack[cpColorStack.size() - i - 1]);
+    }
 }
