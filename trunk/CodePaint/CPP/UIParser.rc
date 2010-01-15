@@ -92,7 +92,6 @@ BEGIN
                     480,117
     CONTROL         "Line Number",IDC_LINE_NUMBER,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,102,266,56,13
-    PUSHBUTTON      "Clear",IDC_BUTTON1,61,267,38,12
 END
 
 

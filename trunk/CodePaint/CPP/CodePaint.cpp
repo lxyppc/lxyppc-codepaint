@@ -13,11 +13,11 @@ struct {
     COLORREF    color;
 }colorMap[] = 
 {
-    {"comment",RGB(0,128,0)},
-    {"string",RGB(200,0,0)},
-    {"number",RGB(100,0,100)},
-    {"keyword",RGB(0,0,255)},
-    {"linenumber",RGB(100,100,0)},
+    {"comment",     RGB(0,128,0)},
+    {"string",      RGB(200,0,0)},
+    {"number",      RGB(100,0,100)},
+    {"keyword",     RGB(0,0,255)},
+    {"linenumber",  RGB(100,100,0)},
 };
 
 struct {
@@ -26,11 +26,13 @@ struct {
     char        *reset;
 }colorFormat[] = 
 {
-    {"ouravr","<font color=#%06X>","</font>"},
+    {"ouravr",  "<font color=#%06X>",   "</font>"},
 };
 
 
-
+/** 
+  Initial color map with default value
+ */
 void    cpInitialColorMap()
 {
     for(int i=0;i<sizeof(colorMap)/sizeof(colorMap[0]);i++){
@@ -44,17 +46,26 @@ void    cpInitialColorMap()
     }
 }
 
+/**
+  Replace or add new color
+ */
+void    cpSetColor(const string& colorName, COLORREF color)
+{
+    cpColorMap[colorName] = color;
+}
+
+/**
+  Reset the color stack
+ */
 void    cpResetColorStack()
 {
     cpPosStack.clear();
     cpColorStack.clear();
 }
 
-void    cpSetColor(const string& colorName, COLORREF color)
-{
-    cpColorMap[colorName] = color;
-}
-
+/**
+  set code color
+ */
 void    cpSetCodeColor(const string& formatName, const string& colorName, BOOL bNeedTrack)
 {
     cpColorFormat_t::iterator it = cpColorFormat.find(formatName);
@@ -65,20 +76,13 @@ void    cpSetCodeColor(const string& formatName, const string& colorName, BOOL b
     if(it1 == cpColorMap.end()){
         return;
     }
-    union {
-        COLORREF ref;
-        struct {
-            BYTE b;
-            BYTE g;
-            BYTE r;
-        };
-    }myColor;
-    myColor.ref = (unsigned int)it1->second;
-    BYTE tmp = myColor.r;
-    myColor.r = myColor.b;
-    myColor.b = tmp;
+    COLORREF ref = RGB(
+        GetBValue(it1->second),
+        GetGValue(it1->second),
+        GetRValue(it1->second)
+        );
     char buf[1024] = "";
-    sprintf(buf,it->second.set.c_str(),myColor.ref);
+    sprintf(buf,it->second.set.c_str(),ref);
     OutputString(buf,0);
     if(bNeedTrack){
         cpCodeColor cpColor;
@@ -90,7 +94,9 @@ void    cpSetCodeColor(const string& formatName, const string& colorName, BOOL b
 
 
 void StringLog(const char* str);
-
+/**
+  reset code color
+ */
 void    cpResetCodeColor(const string& formatName, BOOL bNeedTrack)
 {
     cpColorFormat_t::iterator it = cpColorFormat.find(formatName);
@@ -117,6 +123,9 @@ void    cpResetCodeColor(const string& formatName, BOOL bNeedTrack)
     }
 }
 
+/**
+  get color stack
+ */
 void    cpGetColorStack(vector<cpCodeColor>& colorStack)
 {
     colorStack.clear();

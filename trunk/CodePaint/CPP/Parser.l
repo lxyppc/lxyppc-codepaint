@@ -1,6 +1,9 @@
 %{
+
 #include "CodePaint.h"
-/* Over ride the default input method, here we get the input from rich edit box */
+
+/** Over ride the default input method
+    here we get the input from rich edit box */
 extern int GetInput(char *buf, int maxlen);
 #undef YY_INPUT
 #define YY_INPUT(buf, retval, maxlen) {retval = GetInput(buf, maxlen);}
@@ -8,7 +11,7 @@ extern int GetInput(char *buf, int maxlen);
 /* When got a new line character, invoke this function */
 void NewLine(BOOL bComment);
 
-/* Parser log */
+/* log related definitions */
 extern void StringLog(const char* str);
 #ifdef  _DEBUG
 #define     PRINTF(_X_)     {char buf[1024]=""; sprintf _X_ ; StringLog(buf);}
@@ -16,14 +19,16 @@ extern void StringLog(const char* str);
 #define     PRINTF(_X_) 
 #endif
 
+/* output string to buffer */
 extern  void OutputString(const char* str, int len);
+/* track current position */
 extern  void TrackPosition(const char* str, int len);
+/* output string directly */
 #define     DIRECT_OUTPUT       TrackPosition(yytext,yyleng);OutputString(yytext,yyleng);
 
 extern  BOOL    bNeedLineNumber;
 extern  char*   lnFormatComment;
 extern  char*   lnFormatNormal;
-
 extern  char*   currentFormat;
 
 %}
@@ -53,7 +58,7 @@ Keyword_CPP3    this|throw|true|try|typeid|typename|using|virtual|wchar_t|__mult
 Keyword_CPP4    __single_inheritance|__virtual_inheritance
 Keyword_CPP     {Keyword_CPP1}|{Keyword_CPP2}|{Keyword_CPP3}|{Keyword_CPP4}
 
-Keyword_MSExt     dllexport|dllimport|naked|thread|uuid
+Keyword_MSExt   dllexport|dllimport|naked|thread|uuid
 
 /* Additional state declaration */
 /* State for process line comment */
@@ -67,6 +72,7 @@ Keyword_MSExt     dllexport|dllimport|naked|thread|uuid
 
 
 %%
+                    /* Line Comment process */
 \/\/                { /* Begin line comment */
                         cpSetCodeColor(currentFormat,"comment");
                         DIRECT_OUTPUT;
@@ -86,9 +92,9 @@ Keyword_MSExt     dllexport|dllimport|naked|thread|uuid
 .                   {
                         DIRECT_OUTPUT;
                     }
-             }
+                }   /* Line Comment process end */
 
-                        /* Block Comment process */
+                    /* Block Comment process */
 "/*"                {   /* Block Comment start */ 
                         cpSetCodeColor(currentFormat,"comment");
                         DIRECT_OUTPUT;
@@ -107,10 +113,10 @@ Keyword_MSExt     dllexport|dllimport|naked|thread|uuid
 .                   {   /* Block Comment */ 
                         DIRECT_OUTPUT;
                     }
-              }
+                }   /* Block Comment process end */
 
 
-{PreCompile}        { 
+{PreCompile}        {   /* pre compile command */
                         PRINTF( (buf,"Get PreCompile: %s", yytext) ); 
                         cpSetCodeColor(currentFormat,"keyword");
                         DIRECT_OUTPUT;
@@ -118,72 +124,67 @@ Keyword_MSExt     dllexport|dllimport|naked|thread|uuid
                     }
 
 
-            /* Single quote string process */
-'                 { /* Single quote start */
-                    PRINTF( (buf,"SString Start") );
-                    cpSetCodeColor(currentFormat,"string");
-                    DIRECT_OUTPUT;
-                    BEGIN(SQuoteString);}
+                    /* Single quote string process */
+'                   {   /* Single quote start */
+                        PRINTF( (buf,"SString Start") );
+                        cpSetCodeColor(currentFormat,"string");
+                        DIRECT_OUTPUT;
+                        BEGIN(SQuoteString);}
 <SQuoteString>{
-\n                { /* Single quote end */ 
-                    PRINTF( (buf,"SString Error!") );
-                    DIRECT_OUTPUT;
-                    cpResetCodeColor(currentFormat);
-                    BEGIN(INITIAL); 
-                  }
-'                 {
-                    PRINTF( (buf,"SString End") );
-                    DIRECT_OUTPUT;
-                    cpResetCodeColor(currentFormat);
-                    BEGIN(INITIAL);
-                  }
-\\'               {
-                    DIRECT_OUTPUT;
-                    PRINTF( (buf,"%s",yytext) );
-                  }
-.                 {
-                    DIRECT_OUTPUT;
-                    PRINTF( (buf,"%s",yytext) );
-                  }
-             }
-
-           /* Single quote string process end*/
+\n                  { /* Single quote end */ 
+                        PRINTF( (buf,"SString Error!") );
+                        DIRECT_OUTPUT;
+                        cpResetCodeColor(currentFormat);
+                        BEGIN(INITIAL); 
+                    }
+'                   {
+                        PRINTF( (buf,"SString End") );
+                        DIRECT_OUTPUT;
+                        cpResetCodeColor(currentFormat);
+                        BEGIN(INITIAL);
+                    }
+\\'                 {
+                        DIRECT_OUTPUT;
+                        PRINTF( (buf,"%s",yytext) );
+                    }
+.                   {
+                        DIRECT_OUTPUT;
+                        PRINTF( (buf,"%s",yytext) );
+                    }
+                }   /* Single quote string process end*/
 
 
-
-            /* Double quote string process */
-\"                { /* Double quote start */
-                    PRINTF( (buf,"DString Start") );
-                    cpSetCodeColor(currentFormat,"string");
-                    DIRECT_OUTPUT;
-                    BEGIN(DQuoteString);}
+                    /* Double quote string process */
+\"                  {   /* Double quote start */
+                        PRINTF( (buf,"DString Start") );
+                        cpSetCodeColor(currentFormat,"string");
+                        DIRECT_OUTPUT;
+                        BEGIN(DQuoteString);}
 <DQuoteString>{
-\n                { /* Double quote end */ 
-                    PRINTF( (buf,"DString Error!") );
-                    DIRECT_OUTPUT;
-                    cpResetCodeColor(currentFormat);
-                    BEGIN(INITIAL); 
-                  }
-\"                {
-                    PRINTF( (buf,"DString End") ); 
-                    DIRECT_OUTPUT;
-                    cpResetCodeColor(currentFormat);
-                    BEGIN(INITIAL);
-                  }
-\\\"              {
-                    PRINTF( (buf,"%s",yytext) );
-                    DIRECT_OUTPUT;
-                  }
-.                 {
-                    PRINTF( (buf,"%s",yytext) );
-                    DIRECT_OUTPUT;
-                  }
-             }
-
-           /* Double quote string process end*/
+\n                  {   /* Double quote end */ 
+                        PRINTF( (buf,"DString Error!") );
+                        DIRECT_OUTPUT;
+                        cpResetCodeColor(currentFormat);
+                        BEGIN(INITIAL); 
+                    }
+\"                  {
+                        PRINTF( (buf,"DString End") ); 
+                        DIRECT_OUTPUT;
+                        cpResetCodeColor(currentFormat);
+                        BEGIN(INITIAL);
+                    }
+\\\"                {
+                        PRINTF( (buf,"%s",yytext) );
+                        DIRECT_OUTPUT;
+                    }
+.                   {
+                        PRINTF( (buf,"%s",yytext) );
+                        DIRECT_OUTPUT;
+                    }
+                }   /* Double quote string process end*/
            
 
-\n                              {DIRECT_OUTPUT;NewLine(FALSE);}
+\n                  {DIRECT_OUTPUT;NewLine(FALSE);}
 
 
 {Keyword_C}         { /* Keywords for C*/  
@@ -217,7 +218,9 @@ Keyword_MSExt     dllexport|dllimport|naked|thread|uuid
                         cpResetCodeColor(currentFormat);
                     }
 
-.                   { DIRECT_OUTPUT; }
+.                   {   /* Match nothing */
+                        DIRECT_OUTPUT; 
+                    }
 
 
 %%
@@ -228,8 +231,8 @@ Keyword_MSExt     dllexport|dllimport|naked|thread|uuid
  * Helper functions used for identify the token *
  ************************************************
  */
-// Function for escape the block comment
 int linesCount = 0;
+/* increase the linesCount and output line number if need */
 void NewLine(BOOL bComment)
 {
     linesCount++;
@@ -255,6 +258,7 @@ void    ParseStart(void)
 {
     linesCount = 0;
     if(bNeedLineNumber){
+    /* Output the first line number if need */
         NewLine(FALSE);
     }
 }
