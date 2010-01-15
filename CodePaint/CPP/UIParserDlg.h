@@ -12,29 +12,30 @@ class CUIParserDlg : public CDialog
 {
 // Construction
 public:
-	CUIParserDlg(CWnd* pParent = NULL);	// standard constructor
+    CUIParserDlg(CWnd* pParent = NULL);    // standard constructor
 
 // Dialog Data
-	enum { IDD = IDD_UIPARSER_DIALOG };
+    enum { IDD = IDD_UIPARSER_DIALOG };
 
-	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
+    protected:
+    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
 
 // Implementation
 protected:
-	HICON m_hIcon;
+    HICON m_hIcon;
 
-	// Generated message map functions
-	virtual BOOL OnInitDialog();
-	afx_msg void OnPaint();
-	afx_msg HCURSOR OnQueryDragIcon();
-	DECLARE_MESSAGE_MAP()
+    // Generated message map functions
+    virtual BOOL OnInitDialog();
+    afx_msg void OnPaint();
+    afx_msg HCURSOR OnQueryDragIcon();
+    DECLARE_MESSAGE_MAP()
 public:
     CRichEditCtrl m_sourceView;
 public:
     afx_msg void OnEnChangeRichedit21();
     virtual void OnOK(){}
+    virtual void OnCancel();
 public:
     CComboBox m_log;
 public:

@@ -39,6 +39,13 @@ struct  cpCodeColor{
     int         end;
 };
 
+struct  cpUISetting
+{
+    BOOL        bNeedLineNumber;
+    BOOL        bAutoCopy;
+    string      defaultStyle;
+};
+
 typedef     map<string,COLORREF>    cpColorMap_t;
 typedef     map<string,cpColorSF>   cpColorFormat_t;
 
@@ -46,6 +53,8 @@ extern  void    OutputString(const char* str, int len, BOOL bNeedTrack = FALSE);
 extern  int     curPos;
 
 void    cpInitialColorMap();
+void    cpGetUISetting(cpUISetting& uiSetting);
+void    cpSetUISetting(const cpUISetting& uiSetting);
 void    cpResetColorStack();
 void    cpGetColorStack(vector<cpCodeColor>& colorStack);
 void    cpGetStyleList(vector<string>& styleList);
