@@ -44,6 +44,8 @@ struct  cpUISetting
     BOOL        bNeedLineNumber;
     BOOL        bAutoCopy;
     string      defaultStyle;
+    BOOL        bTab2Space;
+    int         tabSize;
 };
 
 typedef     map<string,COLORREF>    cpColorMap_t;

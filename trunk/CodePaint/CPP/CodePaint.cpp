@@ -118,20 +118,11 @@ void    cpResetCodeColor(const string& formatName, BOOL bNeedTrack)
     char buf[1024] = "";
     sprintf(buf,it->second.reset.c_str());
     OutputString(buf,0);
+
     if(bNeedTrack && cpPosStack.size()){
-        vector<cpCodeColor>::iterator it1 = cpPosStack.begin();
-        it1 += (cpPosStack.size() - 1);
-        if(it1 != cpPosStack.end()){
-            it1->end = curPos;
-            if(0){
-                char buf[1024] = "";
-                sprintf(buf,"Color: 0x%06X, Start: %d, End: %d",
-                    it1->color,it1->start, it1->end);
-                StringLog(buf);
-            }
-            cpColorStack.push_back(*it1);
-            cpPosStack.erase(it1);
-        }
+        (cpPosStack.end()-1)->end = curPos;
+        cpColorStack.push_back(*cpPosStack.rbegin());
+        cpPosStack.pop_back();
     }
 }
 
@@ -428,6 +419,16 @@ void    cpGetUISetting(cpUISetting& uiSetting)
               "DefaultStyle",
               "pic16",tmpStr,256,IniName);
     uiSetting.defaultStyle  = tmpStr;
+    GetPrivateProfileStringA(
+              "UISettings",
+              "Tab2Space",
+              "0",tmpStr,256,IniName);
+    uiSetting.bTab2Space = atoi(tmpStr) ? TRUE:FALSE;
+    GetPrivateProfileStringA(
+              "UISettings",
+              "TabSize",
+              "4",tmpStr,256,IniName);
+    uiSetting.tabSize = atoi(tmpStr);
 }
 
 /**
@@ -440,6 +441,7 @@ void    cpSetUISetting(const cpUISetting& uiSetting)
     IniName[len-1] = _T('i');
     IniName[len-2] = _T('n');
     IniName[len-3] = _T('i');
+    char tmpStr[16] = "";
     BOOL
     res = WritePrivateProfileStringA(
             "UISettings",
@@ -455,5 +457,16 @@ void    cpSetUISetting(const cpUISetting& uiSetting)
             "UISettings",
             "DefaultStyle",
             uiSetting.defaultStyle.c_str(),IniName
+            );
+    res = WritePrivateProfileStringA(
+            "UISettings",
+            "Tab2Space",
+            uiSetting.bTab2Space ? "1" : "0",IniName
+            );
+    itoa(uiSetting.tabSize, tmpStr, 10);
+    res = WritePrivateProfileStringA(
+            "UISettings",
+            "TabSize",
+            tmpStr,IniName
             );
 }

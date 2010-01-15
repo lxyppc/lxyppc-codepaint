@@ -146,7 +146,8 @@ Keyword_MSExt   dllexport|dllimport|naked|thread|uuid
                         PRINTF( (buf,"SString Error!") );
                         DIRECT_OUTPUT;
                         cpResetCodeColor(currentFormat);
-                        BEGIN(INITIAL); 
+                        NewLine(FALSE);
+                        BEGIN(INITIAL);
                     }
 '                   {
                         PRINTF( (buf,"SString End") );
@@ -176,6 +177,7 @@ Keyword_MSExt   dllexport|dllimport|naked|thread|uuid
                         PRINTF( (buf,"DString Error!") );
                         DIRECT_OUTPUT;
                         cpResetCodeColor(currentFormat);
+                        NewLine(FALSE);
                         BEGIN(INITIAL); 
                     }
 \"                  {
