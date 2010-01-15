@@ -15,7 +15,7 @@ struct {
 {
     {"comment",RGB(0,128,0)},
     {"string",RGB(200,0,0)},
-    {"number",RGB(0,0,0)},
+    {"number",RGB(100,0,100)},
     {"keyword",RGB(0,0,255)},
     {"linenumber",RGB(100,100,0)},
 };

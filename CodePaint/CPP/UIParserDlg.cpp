@@ -111,7 +111,7 @@ static char* tmpBuf = NULL;
 int yylex(void);
 void    ParseStart(void);
 CComboBox* pLog = NULL;
-CString result;
+string  result;
 BOOL    bNeedLineNumber;
 char*   lnFormatComment;
 char*   lnFormatNormal;
@@ -141,35 +141,52 @@ void CUIParserDlg::OnBnClickedConvert()
     max = remain = (int)m_textSrcLen;
     m_log.ResetContent();
     pLog = &m_log;
-    result = CString("");
+    result = string("");
+    /* line number format for comment */
     lnFormatComment = "|*%04d*|  ";
+    /* line number format for normal code */
     lnFormatNormal = "/*%04d*/  ";
-    bNeedLineNumber = TRUE;
+    if(((CButton*)GetDlgItem(IDC_LINE_NUMBER))->GetCheck()){
+        bNeedLineNumber = TRUE;
+    }else{
+        bNeedLineNumber = FALSE;
+    }
     currentFormat = "ouravr";
     curPos = 0;
     ParseStart();
     yylex();
-    m_resultView.SetWindowText(result);
+    m_resultView.SetWindowText(CString(result.c_str()));
 
-    static CHARFORMAT  cf;// = {sizeof(CHARFORMAT)};
-    cf.dwMask = CFM_COLOR | CFM_FACE | CFM_SIZE;
+    if(OpenClipboard()){
+        if(EmptyClipboard()){
+            HGLOBAL hData = GlobalAlloc(GMEM_MOVEABLE, result.length() + 1);
+            memcpy(GlobalLock(hData), result.c_str(), result.length() + 1);
+            GlobalUnlock(hData);
+            if (::SetClipboardData(CF_TEXT, hData) == NULL){
+                AfxMessageBox(_T("Unable to set Clipboard data")); 
+            } 
+
+        }
+        CloseClipboard();
+    }
+
+
+    CHARFORMAT  cf = {sizeof(CHARFORMAT)};
+    cf.dwMask = CFM_COLOR | CFM_SIZE | CFM_FACE;
     _tcscpy(cf.szFaceName,_T("Fixedsys"));
-    cf.crTextColor = RGB(0,0,0);
+    cf.crTextColor = RGB(20,20,20);
     cf.yHeight = 180;
-    m_sourceView.SetSel(0,m_sourceView.GetTextLength()-1);
+    m_sourceView.SetSel(0,m_sourceView.GetTextLength());
     m_sourceView.SetSelectionCharFormat(cf);
 
     vector<cpCodeColor> colorStack;
     cpGetColorStack(colorStack);
-    //cf.dwMask = CFM_COLOR;
+    cf.dwMask = CFM_COLOR;
     for(size_t i=0;i<colorStack.size();i++){
         m_sourceView.SetSel(colorStack[i].start,colorStack[i].end);
         cf.crTextColor = colorStack[i].color;
         m_sourceView.SetSelectionCharFormat(cf);
     }
-    //m_sourceView.SetSel(0,8);
-    //cf.crTextColor = RGB(0,0,255);
-    //m_sourceView.SetSelectionCharFormat(cf);
 }
 
 
@@ -184,34 +201,14 @@ int GetInput(char *buf, int maxlen)
         buf[n] = (char) c; 
     }
     if ( c == '\n' ){
-        buf[n++] = (char) c; 
+        buf[n++] = (char) c;
     }
     return n;
 }
 
 /**
- * Here is the code for macro YY_INPUT when YY_INPUT not defined
-#ifndef YY_INPUT
-#define YY_INPUT(buf,result,max_size) \
-	if ( yy_current_buffer->yy_is_interactive ) \
-		{ \
-		int c = '*', n; \
-		for ( n = 0; n < max_size && \
-			     (c = getc( yyin )) != EOF && c != '\n'; ++n ) \
-			buf[n] = (char) c; \
-		if ( c == '\n' ) \
-			buf[n++] = (char) c; \
-		if ( c == EOF && ferror( yyin ) ) \
-			YY_FATAL_ERROR( "input in flex scanner failed" ); \
-		result = n; \
-		} \
-	else if ( ((result = fread( buf, 1, max_size, yyin )) == 0) \
-		  && ferror( yyin ) ) \
-		YY_FATAL_ERROR( "input in flex scanner failed" );
-#endif
-*/
-
-
+ Record the log to combo box
+ */
 void StringLog(const char* str)
 {
     if(pLog){
@@ -221,13 +218,26 @@ void StringLog(const char* str)
 
 void OutputString(const char* str, int len)
 {
-    result += CString(str);
+    result += string(str);
 }
 
 void    TrackPosition(const char* str, int len)
 {
-    curPos += (MultiByteToWideChar (CP_ACP, 0, str, -1, NULL, 0) - 1);
+    curPos += len;//(MultiByteToWideChar (CP_ACP, 0, str, -1, NULL, 0) - 1);
     if(*str == '\r'){
         curPos--;
+    }
+    static bool bNeedSub = true;
+    if(*str<0){
+        if(bNeedSub){
+            curPos--;
+            bNeedSub = false;
+        }else{
+            bNeedSub = true;
+        }
+    }else{
+        if(!bNeedSub){
+            bNeedSub = true;
+        }
     }
 }
