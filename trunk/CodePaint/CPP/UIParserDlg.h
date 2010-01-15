@@ -4,7 +4,8 @@
 #pragma once
 #include "afxcmn.h"
 #include "afxwin.h"
-
+#include <string>
+using       std::string;
 // CUIParserDlg dialog
 class CUIParserDlg : public CDialog
 {
