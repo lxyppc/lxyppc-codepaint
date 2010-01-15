@@ -95,8 +95,6 @@ HCURSOR CUIParserDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-BOOL    parseStart = FALSE;
-
 void CUIParserDlg::OnEnChangeRichedit21()
 {
     // TODO:  If this is a RICHEDIT control, the control will not
@@ -107,21 +105,24 @@ void CUIParserDlg::OnEnChangeRichedit21()
     // TODO:  Add your control notification handler code here
 }
 
-static int remain,max;
-static char* tmpBuf = NULL;
-int yylex(void);
+static int srcRemain = 0;   //< remain characters for the source text
+static int srcLength = 0;   //< length of the source text
+static char* lpSrc = NULL;  //< source buffer pointer
+/* lex parser function */
+int     yylex(void);
 void    ParseStart(void);
-CComboBox* pLog = NULL;
-string  result;
-BOOL    bNeedLineNumber;
-char*   lnFormatComment;
-char*   lnFormatNormal;
-char*   currentFormat;
-int     curPos;
+CComboBox* pLog = NULL;     //< combo box pointer used for log data
+string  result;             //< result generate by the parser
+BOOL    bNeedLineNumber;    //< Flag used for output line number
+char*   lnFormatComment;    //< line number format for block comment
+char*   lnFormatNormal;     //< line number format for normal code
+char*   currentFormat;      //< current format style, e.g. "ouravr"
+int     curPos;             //< current source character position
 void CUIParserDlg::OnBnClickedConvert()
 {
     // TODO: Add your control notification handler code here
-    parseStart = TRUE;
+
+    /** convert the Unicode string to mulit-byte for parser */
     CString str;
     m_sourceView.GetWindowText(str);
     if(m_textSrc)delete [] m_textSrc;
@@ -132,11 +133,14 @@ void CUIParserDlg::OnBnClickedConvert()
         return;
     }
     ::WideCharToMultiByte(CP_ACP,0,str,-1,m_textSrc,(int)m_textSrcLen,NULL,NULL);
-    tmpBuf = m_textSrc;
-    max = remain = (int)m_textSrcLen;
-    m_log.ResetContent();
+
+    /* Prepare data for the lex parser */
+    lpSrc = m_textSrc;                      //< Set source buffer
+    srcLength = 
+        srcRemain = (int)m_textSrcLen;      //< Set source iterator
+    m_log.ResetContent();                   //< Reset log combo box
     pLog = &m_log;
-    result = string("");
+    result = string("");                    //< Reset result string
     /* line number format for comment */
     lnFormatComment = "|*%04d*|  ";
     /* line number format for normal code */
@@ -147,13 +151,14 @@ void CUIParserDlg::OnBnClickedConvert()
     }else{
         bNeedLineNumber = FALSE;
     }
-    currentFormat = "ouravr";
-    curPos = 0;
-    cpResetColorStack();
-    ParseStart();
+    currentFormat = "ouravr";               //< set color sytle
+    curPos = 0;                             //< Initial position
+    cpResetColorStack();                    //< Reset color stack
+    ParseStart();                           //< 
     yylex();
     m_resultView.SetWindowText(CString(result.c_str()));
 
+    /* Copy the result to clipboard */
     if(OpenClipboard()){
         if(EmptyClipboard()){
             HGLOBAL hData = GlobalAlloc(GMEM_MOVEABLE, result.length() + 1);
@@ -166,6 +171,8 @@ void CUIParserDlg::OnBnClickedConvert()
         }
         CloseClipboard();
     }
+
+    /* Reset source text's format */
     CHARFORMAT  cf = {sizeof(CHARFORMAT)};
     cf.dwMask = CFM_COLOR | CFM_SIZE | CFM_FACE;
     _tcscpy(cf.szFaceName,_T("Fixedsys"));
@@ -174,6 +181,7 @@ void CUIParserDlg::OnBnClickedConvert()
     m_sourceView.SetSel(0,m_sourceView.GetTextLength()-1);
     m_sourceView.SetSelectionCharFormat(cf);
 
+    /* Highlight source text */
     vector<cpCodeColor> colorStack;
     cpGetColorStack(colorStack);
     cf.dwMask = CFM_COLOR;
@@ -182,10 +190,6 @@ void CUIParserDlg::OnBnClickedConvert()
         cf.crTextColor = colorStack[i].color;
         m_sourceView.SetSelectionCharFormat(cf);
     }
-    parseStart = FALSE;
-    //cf.crTextColor = RGB(0,0,0);
-    //m_sourceView.SetSel(0,m_sourceView.GetTextLength()-1);
-    //m_sourceView.SetSelectionCharFormat(cf);
 }
 
 
@@ -195,8 +199,8 @@ void CUIParserDlg::OnBnClickedConvert()
 int GetInput(char *buf, int maxlen)
 {
     int c = '*', n;
-    for ( n = 0; n < maxlen &&  remain &&
-        (c = tmpBuf[max-remain--]) != 0 && c != '\n'; ++n ) {
+    for ( n = 0; n < maxlen &&  srcRemain &&
+        (c = lpSrc[srcLength-srcRemain--]) != 0 && c != '\n'; ++n ) {
         buf[n] = (char) c; 
     }
     if ( c == '\n' ){
@@ -226,6 +230,8 @@ void    TrackPosition(const char* str, int len)
     if(*str == '\r'){
         curPos--;
     }
+
+    /* handle multi-byte character's leader byte*/
     static bool bNeedSub = true;
     if(*str<0){
         if(bNeedSub){
