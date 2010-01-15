@@ -27,6 +27,8 @@ struct {
 }colorFormat[] = 
 {
     {"ouravr",  "<font color=#%06X>",   "</font>"},
+    {"21ic",    "[color=#%06X]",        "[/color]"},
+    {"pic16",   "<FONT color=#%06X>",   "</FONT>"},
 };
 
 
@@ -131,5 +133,21 @@ void    cpGetColorStack(vector<cpCodeColor>& colorStack)
     colorStack.clear();
     for(size_t i=0;i<cpColorStack.size();i++){
         colorStack.push_back(cpColorStack[cpColorStack.size() - i - 1]);
+    }
+}
+
+void    cpGetStyleList(vector<string>& styleList)
+{
+    styleList.clear();
+    for(cpColorFormat_t::iterator it = cpColorFormat.begin();
+        it != cpColorFormat.end(); it++){
+        styleList.push_back(it->first);
+    }
+}
+
+void    cpGetNewline(const string& formatName)
+{
+    if(formatName == "pic16"){
+        OutputString("<BR>",0);
     }
 }

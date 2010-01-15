@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "UIParser.h"
 #include "UIParserDlg.h"
-#include "CodePaint.h"
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -30,6 +30,7 @@ void CUIParserDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_RICHEDIT21, m_sourceView);
     DDX_Control(pDX, IDC_LOG, m_log);
     DDX_Control(pDX, IDC_EDIT1, m_resultView);
+    DDX_Control(pDX, IDC_COMBO1, m_style);
 }
 
 BEGIN_MESSAGE_MAP(CUIParserDlg, CDialog)
@@ -55,6 +56,14 @@ BOOL CUIParserDlg::OnInitDialog()
 	// TODO: Add extra initialization here
     m_sourceView.SetEventMask(m_sourceView.GetEventMask()|ENM_CHANGE);
     cpInitialColorMap();
+    cpGetStyleList(m_styleList);
+    m_style.ResetContent();
+    for(size_t i=0;i<m_styleList.size();i++){
+        m_style.AddString(CString(m_styleList[i].c_str()));
+    }
+    if(m_styleList.size()){
+        m_style.SetCurSel(0);
+    }
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -151,7 +160,14 @@ void CUIParserDlg::OnBnClickedConvert()
     }else{
         bNeedLineNumber = FALSE;
     }
-    currentFormat = "ouravr";               //< set color sytle
+    static char curStyle[1024] = "";
+    if(m_style.GetCurSel() >=0 && m_style.GetCurSel() < m_styleList.size()){
+        strcpy(curStyle,m_styleList[m_style.GetCurSel()].c_str());
+    }else{
+        AfxMessageBox(_T("Invalid selection!"));
+        return;
+    }
+    currentFormat = curStyle;                 //< set color sytle
     curPos = 0;                             //< Initial position
     cpResetColorStack();                    //< Reset color stack
     ParseStart();                           //< 

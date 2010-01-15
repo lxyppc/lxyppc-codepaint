@@ -4,6 +4,7 @@
 #pragma once
 #include "afxcmn.h"
 #include "afxwin.h"
+#include "CodePaint.h"
 #include <string>
 using       std::string;
 // CUIParserDlg dialog
@@ -43,4 +44,8 @@ public:
     size_t      m_textSrcLen;
 public:
     CEdit       m_resultView;
+public:
+    CComboBox m_style;
+public:
+    vector<string>  m_styleList;
 };
