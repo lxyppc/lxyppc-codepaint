@@ -338,7 +338,7 @@ void OutputString(const char* str, int len, BOOL bNeedTrack)
             curPos--;
         }
         colPos += len;
-        if(*str == '\n')colPos = 0;
+        //if(*str == '\n')colPos = 0;
 
         /* handle multi-byte character's leader byte*/
         static bool bNeedSub = true;

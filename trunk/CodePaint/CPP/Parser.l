@@ -41,6 +41,7 @@ extern  BOOL    bNeedLineNumber;
 extern  char*   lnFormatComment;
 extern  char*   lnFormatNormal;
 extern  char*   currentFormat;
+extern  int     colPos;
 
 %}
 
@@ -261,6 +262,7 @@ void NewLine(BOOL bComment)
         OutputString(buf,0);
         cpResetCodeColor(currentFormat,FALSE);
     }
+    colPos = 0;
 }
 
 int  yywrap(void)
