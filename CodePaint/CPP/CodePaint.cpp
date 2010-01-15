@@ -24,11 +24,14 @@ struct {
     char        *name;
     char        *set;
     char        *reset;
+    char        *startTag;
+    char        *endTag;
+    BOOL        bNeedReplaceHtml;
 }colorFormat[] = 
 {
-    {"ouravr",  "<font color=#%06X>",   "</font>"},
-    {"21ic",    "[color=#%06X]",        "[/color]"},
-    {"pic16",   "<FONT color=#%06X>",   "</FONT>"},
+    {"ouravr",  "<font color=#%06X>",   "</font>"   , "", "", FALSE},
+    {"21ic",    "[color=#%06X]",        "[/color]"  , "", "", FALSE},
+    {"pic16",   "<FONT color=#%06X>",   "</FONT>"   , "<DIV class=quote>", "</DIV>", TRUE},
 };
 
 
@@ -44,6 +47,13 @@ void    cpInitialColorMap()
         cpColorSF sf;
         sf.set = colorFormat[i].set;
         sf.reset = colorFormat[i].reset;
+        sf.bNeedReplaceHtml = colorFormat[i].bNeedReplaceHtml;
+        if(colorFormat[i].startTag){
+            sf.startTag = colorFormat[i].startTag;
+        }
+        if(colorFormat[i].endTag){
+            sf.endTag = colorFormat[i].endTag;
+        }
         cpColorFormat[colorFormat[i].name] = sf;
     }
 }
@@ -150,4 +160,19 @@ void    cpGetNewline(const string& formatName)
     if(formatName == "pic16"){
         OutputString("<BR>",0);
     }
+}
+
+BOOL    cpIsNeedReplaceHtml(const string& formatName)
+{
+    return cpColorFormat[formatName].bNeedReplaceHtml;
+}
+
+string  cpStartTag(const string& formatName)
+{
+    return string(cpColorFormat[formatName].startTag);
+}
+
+string  cpEndTag(const string& formatName)
+{
+    return string(cpColorFormat[formatName].endTag);
 }

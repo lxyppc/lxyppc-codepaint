@@ -31,11 +31,11 @@ extern void StringLog(const char* str);
 #endif
 
 /* output string to buffer */
-extern  void OutputString(const char* str, int len);
+extern  void OutputString(const char* str, int len, BOOL bNeedTrack);
 /* track current position */
 extern  void TrackPosition(const char* str, int len);
 /* output string directly */
-#define     DIRECT_OUTPUT       TrackPosition(yytext,yyleng);OutputString(yytext,yyleng);
+#define     DIRECT_OUTPUT       OutputString(yytext,yyleng,TRUE);
 
 extern  BOOL    bNeedLineNumber;
 extern  char*   lnFormatComment;
