@@ -1,5 +1,7 @@
 ..\CPP                 VS2003 Source code
 
+These characters are written in Chinese
+
 由VS2003编译 
 词法分析部分是由lex编写 
 文件包中包含lex编译程序"flex.exe" 
@@ -17,3 +19,9 @@
 在下面的文本框中会生成BBS中的代码，同时内容被复制到剪切板中，在论坛中粘贴即可
 
 可以选择是否将tab换成空格，以及换成空格的个数
+
+
+Compile by VS2003
+Lexical analysis is written in lex, compile by flex.exe
+
+Add a html color tag of the keyword when post source code to BBS
