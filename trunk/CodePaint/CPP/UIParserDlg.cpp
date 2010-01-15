@@ -82,6 +82,9 @@ BOOL CUIParserDlg::OnInitDialog()
     CString s;
     s.Format(_T("%d"),m_tabSize);
     ((CButton*)GetDlgItem(IDC_TABSIZE))->SetWindowText(s);
+    SetWindowPos(NULL,uiSet.windowRect.left,uiSet.windowRect.top,
+        uiSet.windowRect.right - uiSet.windowRect.left,
+        uiSet.windowRect.bottom - uiSet.windowRect.top,SWP_NOZORDER);
     return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -96,6 +99,7 @@ void CUIParserDlg::OnCancel()
     CString s;
     ((CButton*)GetDlgItem(IDC_TABSIZE))->GetWindowText(s);
     uiSet.tabSize = m_tabSize = _ttoi(s);
+    GetWindowRect(&uiSet.windowRect);
     cpSetUISetting(uiSet);
     __super::OnCancel();
 }

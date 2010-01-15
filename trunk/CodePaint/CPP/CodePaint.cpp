@@ -429,6 +429,38 @@ void    cpGetUISetting(cpUISetting& uiSetting)
               "TabSize",
               "4",tmpStr,256,IniName);
     uiSetting.tabSize = atoi(tmpStr);
+    GetPrivateProfileStringA(
+              "UISettings",
+              "Left",
+              "200",tmpStr,256,IniName);
+    uiSetting.windowRect.left = atoi(tmpStr);
+    GetPrivateProfileStringA(
+              "UISettings",
+              "Right",
+              "900",tmpStr,256,IniName);
+    uiSetting.windowRect.right = atoi(tmpStr);
+    GetPrivateProfileStringA(
+              "UISettings",
+              "Top",
+              "200",tmpStr,256,IniName);
+    uiSetting.windowRect.top = atoi(tmpStr);
+    GetPrivateProfileStringA(
+              "UISettings",
+              "Bottom",
+              "600",tmpStr,256,IniName);
+    uiSetting.windowRect.bottom = atoi(tmpStr);
+    int cx = ::GetSystemMetrics(SM_CXSCREEN);
+    int cy = ::GetSystemMetrics(SM_CYSCREEN);
+    if(uiSetting.windowRect.left < 0) goto restore;
+    if(uiSetting.windowRect.top < 0) goto restore;
+    if(uiSetting.windowRect.right >= cx) goto restore;
+    if(uiSetting.windowRect.bottom >= cy) goto restore;
+    return;
+restore:
+    uiSetting.windowRect.left = 200;
+    uiSetting.windowRect.right = 900;
+    uiSetting.windowRect.top = 200;
+    uiSetting.windowRect.bottom = 600;
 }
 
 /**
@@ -467,6 +499,30 @@ void    cpSetUISetting(const cpUISetting& uiSetting)
     res = WritePrivateProfileStringA(
             "UISettings",
             "TabSize",
+            tmpStr,IniName
+            );
+    itoa(uiSetting.windowRect.left, tmpStr, 10);
+    res = WritePrivateProfileStringA(
+            "UISettings",
+            "Left",
+            tmpStr,IniName
+            );
+    itoa(uiSetting.windowRect.right, tmpStr, 10);
+    res = WritePrivateProfileStringA(
+            "UISettings",
+            "Right",
+            tmpStr,IniName
+            );
+    itoa(uiSetting.windowRect.top, tmpStr, 10);
+    res = WritePrivateProfileStringA(
+            "UISettings",
+            "Top",
+            tmpStr,IniName
+            );
+    itoa(uiSetting.windowRect.bottom, tmpStr, 10);
+    res = WritePrivateProfileStringA(
+            "UISettings",
+            "Bottom",
             tmpStr,IniName
             );
 }
