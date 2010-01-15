@@ -2139,6 +2139,7 @@ int linesCount = 0;
 /* increase the linesCount and output line number if need */
 void NewLine(BOOL bComment)
 {
+    cpGetNewline(currentFormat);
     linesCount++;
     if(bNeedLineNumber){
         cpSetCodeColor(currentFormat,"linenumber",FALSE);

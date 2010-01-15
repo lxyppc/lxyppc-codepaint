@@ -39,7 +39,9 @@ extern  int     curPos;
 void    cpInitialColorMap();
 void    cpResetColorStack();
 void    cpGetColorStack(vector<cpCodeColor>& colorStack);
+void    cpGetStyleList(vector<string>& styleList);
 void    cpSetColor(const string& colorName, COLORREF color);
 
 void    cpSetCodeColor(const string& formatName, const string& colorName, BOOL bNeedTrack = TRUE);
 void    cpResetCodeColor(const string& formatName, BOOL bNeedTrack = TRUE);
+void    cpGetNewline(const string& formatName);
