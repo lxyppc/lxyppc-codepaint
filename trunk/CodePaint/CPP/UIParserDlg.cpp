@@ -17,11 +17,11 @@
 
 
 CUIParserDlg::CUIParserDlg(CWnd* pParent /*=NULL*/)
-	: CDialog(CUIParserDlg::IDD, pParent)
+    : CDialog(CUIParserDlg::IDD, pParent)
     ,m_textSrc(NULL)
     ,m_textSrcLen(0)
 {
-	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+    m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
 void CUIParserDlg::DoDataExchange(CDataExchange* pDX)
@@ -34,9 +34,9 @@ void CUIParserDlg::DoDataExchange(CDataExchange* pDX)
 }
 
 BEGIN_MESSAGE_MAP(CUIParserDlg, CDialog)
-	ON_WM_PAINT()
-	ON_WM_QUERYDRAGICON()
-	//}}AFX_MSG_MAP
+    ON_WM_PAINT()
+    ON_WM_QUERYDRAGICON()
+    //}}AFX_MSG_MAP
     ON_EN_CHANGE(IDC_RICHEDIT21, &CUIParserDlg::OnEnChangeRichedit21)
     ON_BN_CLICKED(IDC_CONVERT, &CUIParserDlg::OnBnClickedConvert)
     ON_WM_SIZE()
@@ -47,26 +47,43 @@ END_MESSAGE_MAP()
 
 BOOL CUIParserDlg::OnInitDialog()
 {
-	CDialog::OnInitDialog();
+    CDialog::OnInitDialog();
 
-	// Set the icon for this dialog.  The framework does this automatically
-	//  when the application's main window is not a dialog
-	SetIcon(m_hIcon, TRUE);			// Set big icon
-	SetIcon(m_hIcon, FALSE);		// Set small icon
+    // Set the icon for this dialog.  The framework does this automatically
+    //  when the application's main window is not a dialog
+    SetIcon(m_hIcon, TRUE);            // Set big icon
+    SetIcon(m_hIcon, FALSE);        // Set small icon
 
-	// TODO: Add extra initialization here
+    // TODO: Add extra initialization here
     m_sourceView.SetEventMask(m_sourceView.GetEventMask()|ENM_CHANGE);
     cpInitialColorMap();
     cpGetStyleList(m_styleList);
+    cpUISetting uiSet;
+    cpGetUISetting(uiSet);
     m_style.ResetContent();
+    int sel = 0;
     for(size_t i=0;i<m_styleList.size();i++){
         m_style.AddString(CString(m_styleList[i].c_str()));
+        if(uiSet.defaultStyle == m_styleList[i]){
+            sel = i;
+        }
     }
     if(m_styleList.size()){
-        m_style.SetCurSel(0);
+        m_style.SetCurSel(sel);
     }
-    ((CButton*)GetDlgItem(IDC_CLIPBOARD))->SetCheck(1);
-	return TRUE;  // return TRUE  unless you set the focus to a control
+    ((CButton*)GetDlgItem(IDC_CLIPBOARD))->SetCheck(uiSet.bAutoCopy);
+    ((CButton*)GetDlgItem(IDC_LINE_NUMBER))->SetCheck(uiSet.bNeedLineNumber);
+    return TRUE;  // return TRUE  unless you set the focus to a control
+}
+
+void CUIParserDlg::OnCancel()
+{
+    cpUISetting uiSet;
+    uiSet.defaultStyle = m_styleList[m_style.GetCurSel()];
+    uiSet.bAutoCopy = ((CButton*)GetDlgItem(IDC_CLIPBOARD))->GetCheck();
+    uiSet.bNeedLineNumber = ((CButton*)GetDlgItem(IDC_LINE_NUMBER))->GetCheck();
+    cpSetUISetting(uiSet);
+    __super::OnCancel();
 }
 
 // If you add a minimize button to your dialog, you will need the code below
@@ -75,34 +92,34 @@ BOOL CUIParserDlg::OnInitDialog()
 
 void CUIParserDlg::OnPaint()
 {
-	if (IsIconic())
-	{
-		CPaintDC dc(this); // device context for painting
+    if (IsIconic())
+    {
+        CPaintDC dc(this); // device context for painting
 
-		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
+        SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
 
-		// Center icon in client rectangle
-		int cxIcon = GetSystemMetrics(SM_CXICON);
-		int cyIcon = GetSystemMetrics(SM_CYICON);
-		CRect rect;
-		GetClientRect(&rect);
-		int x = (rect.Width() - cxIcon + 1) / 2;
-		int y = (rect.Height() - cyIcon + 1) / 2;
+        // Center icon in client rectangle
+        int cxIcon = GetSystemMetrics(SM_CXICON);
+        int cyIcon = GetSystemMetrics(SM_CYICON);
+        CRect rect;
+        GetClientRect(&rect);
+        int x = (rect.Width() - cxIcon + 1) / 2;
+        int y = (rect.Height() - cyIcon + 1) / 2;
 
-		// Draw the icon
-		dc.DrawIcon(x, y, m_hIcon);
-	}
-	else
-	{
-		CDialog::OnPaint();
-	}
+        // Draw the icon
+        dc.DrawIcon(x, y, m_hIcon);
+    }
+    else
+    {
+        CDialog::OnPaint();
+    }
 }
 
 // The system calls this function to obtain the cursor to display while the user drags
 //  the minimized window.
 HCURSOR CUIParserDlg::OnQueryDragIcon()
 {
-	return static_cast<HCURSOR>(m_hIcon);
+    return static_cast<HCURSOR>(m_hIcon);
 }
 
 void CUIParserDlg::OnEnChangeRichedit21()
@@ -157,7 +174,7 @@ void CUIParserDlg::OnBnClickedConvert()
     m_sourceView.GetWindowText(str);
     if(m_textSrc)delete [] m_textSrc;
     m_textSrcLen = ::WideCharToMultiByte(CP_ACP,0,str,-1,NULL,0,NULL,NULL);
-	m_textSrc = new char[m_textSrcLen+2];
+    m_textSrc = new char[m_textSrcLen+2];
     if(!m_textSrc){
         AfxMessageBox(_T("Fail to allocate buffer for the text!"));
         return;

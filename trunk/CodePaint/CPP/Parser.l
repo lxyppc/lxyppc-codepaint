@@ -75,11 +75,11 @@ Keyword_MSExt   dllexport|dllimport|naked|thread|uuid
 /* State for process line comment */
 %x      LineComment
 /* State for process block comment */
-%x	BlockComment
+%x    BlockComment
 /* State for process single quote strign */
-%x	DQuoteString
+%x    DQuoteString
 /* State for process double quote strign */
-%x	SQuoteString
+%x    SQuoteString
 
 
 %%

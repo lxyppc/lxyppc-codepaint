@@ -7,7 +7,6 @@ cpColorFormat_t         cpColorFormat;
 vector<cpCodeColor>     cpPosStack;
 vector<cpCodeColor>     cpColorStack;
 
-
 struct {
     char        *name;
     COLORREF    color;
@@ -34,28 +33,29 @@ struct {
     {"pic16",   "<FONT color=#%06X>",   "</FONT>"   , "<DIV class=quote>", "</DIV>", TRUE},
 };
 
-
+static void    cpLoadSettingFromIni();
 /** 
   Initial color map with default value
  */
 void    cpInitialColorMap()
 {
-    for(int i=0;i<sizeof(colorMap)/sizeof(colorMap[0]);i++){
-        cpColorMap[colorMap[i].name] = colorMap[i].color;
-    }
-    for(int i=0;i<sizeof(colorFormat)/sizeof(colorFormat[0]);i++){
-        cpColorSF sf;
-        sf.set = colorFormat[i].set;
-        sf.reset = colorFormat[i].reset;
-        sf.bNeedReplaceHtml = colorFormat[i].bNeedReplaceHtml;
-        if(colorFormat[i].startTag){
-            sf.startTag = colorFormat[i].startTag;
-        }
-        if(colorFormat[i].endTag){
-            sf.endTag = colorFormat[i].endTag;
-        }
-        cpColorFormat[colorFormat[i].name] = sf;
-    }
+    cpLoadSettingFromIni();
+    //for(int i=0;i<sizeof(colorMap)/sizeof(colorMap[0]);i++){
+    //    cpColorMap[colorMap[i].name] = colorMap[i].color;
+    //}
+    //for(int i=0;i<sizeof(colorFormat)/sizeof(colorFormat[0]);i++){
+    //    cpColorSF sf;
+    //    sf.set = colorFormat[i].set;
+    //    sf.reset = colorFormat[i].reset;
+    //    sf.bNeedReplaceHtml = colorFormat[i].bNeedReplaceHtml;
+    //    if(colorFormat[i].startTag){
+    //        sf.startTag = colorFormat[i].startTag;
+    //    }
+    //    if(colorFormat[i].endTag){
+    //        sf.endTag = colorFormat[i].endTag;
+    //    }
+    //    cpColorFormat[colorFormat[i].name] = sf;
+    //}
 }
 
 /**
@@ -175,4 +175,285 @@ string  cpStartTag(const string& formatName)
 string  cpEndTag(const string& formatName)
 {
     return string(cpColorFormat[formatName].endTag);
+}
+
+char    IniName[1024] = "";
+#define ArrSize(x)      (sizeof(x)/sizeof(x[0]))
+
+static void    cpWriteDefaultStyle()
+{
+    GetModuleFileNameA(NULL,IniName,1024);
+    size_t len = strlen(IniName);
+    IniName[len-1] = _T('i');
+    IniName[len-2] = _T('n');
+    IniName[len-3] = _T('i');
+        BOOL res;
+        char tmpStr[256] = "";
+        itoa(ArrSize(colorFormat),tmpStr,10);
+        res = WritePrivateProfileStringA(
+            "StyleSettings",
+            "Count",
+            tmpStr,IniName
+            );
+        for(int i=0;i<ArrSize(colorFormat);i++){
+            char sName[256] = "Setting";
+            itoa(i,sName+7,10);
+            res = WritePrivateProfileStringA(
+                "StyleSettings",
+                sName,
+                colorFormat[i].name,IniName
+                );
+            res = WritePrivateProfileStringA(
+                colorFormat[i].name,
+                "ColorSet",
+                colorFormat[i].set,IniName
+                );
+            res = WritePrivateProfileStringA(
+                colorFormat[i].name,
+                "ColorReset",
+                colorFormat[i].reset,IniName
+                );
+            res = WritePrivateProfileStringA(
+                colorFormat[i].name,
+                "StartTag",
+                colorFormat[i].startTag,IniName
+                );
+            res = WritePrivateProfileStringA(
+                colorFormat[i].name,
+                "EndTag",
+                colorFormat[i].endTag,IniName
+                );
+            res = WritePrivateProfileStringA(
+                colorFormat[i].name,
+                "ReplaceHtmlTag",
+                colorFormat[i].bNeedReplaceHtml ? "1" : "0",IniName
+                );
+        }
+}
+
+static void    cpWriteDefaultColor()
+{
+    GetModuleFileNameA(NULL,IniName,1024);
+    size_t len = strlen(IniName);
+    IniName[len-1] = _T('i');
+    IniName[len-2] = _T('n');
+    IniName[len-3] = _T('i');
+        BOOL res;
+        char tmpStr[256] = "";
+        itoa(ArrSize(colorMap),tmpStr,10);
+        res = WritePrivateProfileStringA(
+            "ColorSettings",
+            "Count",
+            tmpStr,IniName
+            );
+        for(int i=0;i<ArrSize(colorMap);i++){
+            char sName[256] = "ColorNo";
+            itoa(i,sName+7,10);
+            res = WritePrivateProfileStringA(
+                "ColorSettings",
+                sName,
+                colorMap[i].name,IniName
+                );
+            itoa(GetRValue(colorMap[i].color),sName,10);
+            res = WritePrivateProfileStringA(
+                colorMap[i].name,
+                "R",
+                sName,IniName
+                );
+            itoa(GetGValue(colorMap[i].color),sName,10);
+            res = WritePrivateProfileStringA(
+                colorMap[i].name,
+                "G",
+                sName,IniName
+                );
+            itoa(GetBValue(colorMap[i].color),sName,10);
+            res = WritePrivateProfileStringA(
+                colorMap[i].name,
+                "B",
+                sName,IniName
+                );
+        }
+}
+
+static void    cpLoadSettingFromIni()
+{
+    GetModuleFileNameA(NULL,IniName,1024);
+    size_t len = strlen(IniName);
+    IniName[len-1] = _T('i');
+    IniName[len-2] = _T('n');
+    IniName[len-3] = _T('i');
+    FILE* fp = fopen(IniName,"r");
+    if(fp){
+        fclose(fp);
+    }else{
+        /// Write default value to ini file
+        cpWriteDefaultStyle();
+        cpWriteDefaultColor();
+    }
+    // Load settings from the ini file
+    BOOL res;
+    char tmpStr[256] = "";
+    // Load style settings
+    cpColorFormat.clear();
+    res = GetPrivateProfileStringA(
+            "StyleSettings",
+            "Count",
+            "0",tmpStr,256,IniName
+            );
+    int tmpCnt = atoi(tmpStr);
+    if(!tmpCnt){
+        cpWriteDefaultStyle();
+        res = GetPrivateProfileStringA(
+            "StyleSettings",
+            "Count",
+            "0",tmpStr,256,IniName
+            );
+        tmpCnt = atoi(tmpStr);
+    }
+    for(int i=0;i<tmpCnt;i++){
+        char sName[256] = "Setting";
+        itoa(i,sName+7,10);
+        res = GetPrivateProfileStringA(
+            "StyleSettings",
+            sName,
+            "",tmpStr,256,IniName);
+        if(string(tmpStr) != ""){
+            cpColorSF sf;
+
+            res = GetPrivateProfileStringA(
+            tmpStr,
+            "ColorSet",
+            "",sName,256,IniName);
+            sf.set = sName;
+
+            res = GetPrivateProfileStringA(
+            tmpStr,
+            "ColorReset",
+            "",sName,256,IniName);
+            sf.reset = sName;
+
+            res = GetPrivateProfileStringA(
+            tmpStr,
+            "StartTag",
+            "",sName,256,IniName);
+            sf.startTag = sName;
+
+            res = GetPrivateProfileStringA(
+            tmpStr,
+            "EndTag",
+            "",sName,256,IniName);
+            sf.endTag = sName;
+
+            res = GetPrivateProfileStringA(
+            tmpStr,
+            "ReplaceHtmlTag",
+            "",sName,256,IniName);
+            sf.bNeedReplaceHtml = atoi(sName) ? TRUE : FALSE;
+            cpColorFormat[tmpStr] = sf;
+        }
+    }
+
+    // Load color settings
+    cpColorMap.clear();
+    res = GetPrivateProfileStringA(
+            "ColorSettings",
+            "Count",
+            "0",tmpStr,256,IniName
+            );
+    tmpCnt = atoi(tmpStr);
+    if(!tmpCnt){
+        cpWriteDefaultColor();
+        res = GetPrivateProfileStringA(
+            "ColorSettings",
+            "Count",
+            "0",tmpStr,256,IniName
+            );
+       tmpCnt = atoi(tmpStr);
+    }
+    for(int i=0;i<tmpCnt;i++){
+        char sName[256] = "ColorNo";
+        itoa(i,sName+7,10);
+        res = GetPrivateProfileStringA(
+            "ColorSettings",
+            sName,
+            "",tmpStr,256,IniName);
+        if(string(tmpStr) != ""){
+            int r,g,b;
+            res = GetPrivateProfileStringA(
+                tmpStr,
+                "R",
+                "0",sName,256,IniName);
+            r = atoi(sName);
+            res = GetPrivateProfileStringA(
+                tmpStr,
+                "G",
+                "0",sName,256,IniName);
+            g = atoi(sName);
+            res = GetPrivateProfileStringA(
+                tmpStr,
+                "B",
+                "0",sName,256,IniName);
+            b = atoi(sName);
+            cpColorMap[tmpStr] = RGB(r,g,b);
+        }
+    }
+            //for(int i=0;i<sizeof(colorMap)/sizeof(colorMap[0]);i++){
+        //    cpColorMap[colorMap[i].name] = colorMap[i].color;
+        //}
+}
+
+/**
+  Get UI settings from the ini file
+ */
+void    cpGetUISetting(cpUISetting& uiSetting)
+{
+    GetModuleFileNameA(NULL,IniName,1024);
+    size_t len = strlen(IniName);
+    IniName[len-1] = _T('i');
+    IniName[len-2] = _T('n');
+    IniName[len-3] = _T('i');
+    char tmpStr[256] = "";
+    GetPrivateProfileStringA(
+              "UISettings",
+              "NeedLineNumber",
+              "0",tmpStr,256,IniName);
+    uiSetting.bNeedLineNumber = atoi(tmpStr) ? TRUE:FALSE;
+    GetPrivateProfileStringA(
+              "UISettings",
+              "AutoCopy",
+              "1",tmpStr,256,IniName);
+    uiSetting.bAutoCopy = atoi(tmpStr) ? TRUE:FALSE;
+    GetPrivateProfileStringA(
+              "UISettings",
+              "DefaultStyle",
+              "pic16",tmpStr,256,IniName);
+    uiSetting.defaultStyle  = tmpStr;
+}
+
+/**
+  Save UI settings tp the ini file
+ */
+void    cpSetUISetting(const cpUISetting& uiSetting)
+{
+    GetModuleFileNameA(NULL,IniName,1024);
+    size_t len = strlen(IniName);
+    IniName[len-1] = _T('i');
+    IniName[len-2] = _T('n');
+    IniName[len-3] = _T('i');
+    BOOL
+    res = WritePrivateProfileStringA(
+            "UISettings",
+            "NeedLineNumber",
+            uiSetting.bNeedLineNumber ? "1":"0",IniName
+            );
+    res = WritePrivateProfileStringA(
+            "UISettings",
+            "AutoCopy",
+            uiSetting.bAutoCopy ? "1":"0",IniName
+            );
+    res = WritePrivateProfileStringA(
+            "UISettings",
+            "DefaultStyle",
+            uiSetting.defaultStyle.c_str(),IniName
+            );
 }
