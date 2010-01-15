@@ -95,6 +95,7 @@ HCURSOR CUIParserDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+BOOL    parseStart = FALSE;
 
 void CUIParserDlg::OnEnChangeRichedit21()
 {
@@ -120,13 +121,7 @@ int     curPos;
 void CUIParserDlg::OnBnClickedConvert()
 {
     // TODO: Add your control notification handler code here
-    /* Convert rich edit text's format to char* */
-    {
-        CHARFORMAT cf;
-        m_sourceView.GetSelectionCharFormat(cf);
-        cf.crTextColor = RGB(0,0,0);
-    }
-
+    parseStart = TRUE;
     CString str;
     m_sourceView.GetWindowText(str);
     if(m_textSrc)delete [] m_textSrc;
@@ -146,6 +141,7 @@ void CUIParserDlg::OnBnClickedConvert()
     lnFormatComment = "|*%04d*|  ";
     /* line number format for normal code */
     lnFormatNormal = "/*%04d*/  ";
+    /* Need line number or not */
     if(((CButton*)GetDlgItem(IDC_LINE_NUMBER))->GetCheck()){
         bNeedLineNumber = TRUE;
     }else{
@@ -153,6 +149,7 @@ void CUIParserDlg::OnBnClickedConvert()
     }
     currentFormat = "ouravr";
     curPos = 0;
+    cpResetColorStack();
     ParseStart();
     yylex();
     m_resultView.SetWindowText(CString(result.c_str()));
@@ -169,14 +166,12 @@ void CUIParserDlg::OnBnClickedConvert()
         }
         CloseClipboard();
     }
-
-
     CHARFORMAT  cf = {sizeof(CHARFORMAT)};
     cf.dwMask = CFM_COLOR | CFM_SIZE | CFM_FACE;
     _tcscpy(cf.szFaceName,_T("Fixedsys"));
-    cf.crTextColor = RGB(20,20,20);
+    cf.crTextColor = RGB(0,0,0);
     cf.yHeight = 180;
-    m_sourceView.SetSel(0,m_sourceView.GetTextLength());
+    m_sourceView.SetSel(0,m_sourceView.GetTextLength()-1);
     m_sourceView.SetSelectionCharFormat(cf);
 
     vector<cpCodeColor> colorStack;
@@ -187,6 +182,10 @@ void CUIParserDlg::OnBnClickedConvert()
         cf.crTextColor = colorStack[i].color;
         m_sourceView.SetSelectionCharFormat(cf);
     }
+    parseStart = FALSE;
+    //cf.crTextColor = RGB(0,0,0);
+    //m_sourceView.SetSel(0,m_sourceView.GetTextLength()-1);
+    //m_sourceView.SetSelectionCharFormat(cf);
 }
 
 
@@ -196,7 +195,7 @@ void CUIParserDlg::OnBnClickedConvert()
 int GetInput(char *buf, int maxlen)
 {
     int c = '*', n;
-    for ( n = 0; n < maxlen && 
+    for ( n = 0; n < maxlen &&  remain &&
         (c = tmpBuf[max-remain--]) != 0 && c != '\n'; ++n ) {
         buf[n] = (char) c; 
     }
