@@ -147,6 +147,7 @@ char*   lnFormatComment;    //< line number format for block comment
 char*   lnFormatNormal;     //< line number format for normal code
 char*   currentFormat;      //< current format style, e.g. "ouravr"
 int     curPos;             //< current source character position
+BOOL    bNeedReplaceHtml;   //< replace html special character or not
 void CUIParserDlg::OnBnClickedConvert()
 {
     // TODO: Add your control notification handler code here
@@ -192,11 +193,14 @@ void CUIParserDlg::OnBnClickedConvert()
         AfxMessageBox(_T("Invalid selection!"));
         return;
     }
+    bNeedReplaceHtml = cpIsNeedReplaceHtml(curStyle);
     currentFormat = curStyle;                 //< set color sytle
+    result += cpStartTag(curStyle);
     curPos = 0;                             //< Initial position
     cpResetColorStack();                    //< Reset color stack
     ParseStart();                           //< 
     yylex();
+    result += cpEndTag(curStyle);
     m_resultView.SetWindowText(CString(result.c_str()));
 
     /* Copy the result to clipboard */
@@ -262,12 +266,50 @@ void StringLog(const char* str)
     }
 }
 
-void OutputString(const char* str, int len)
+void OutputString(const char* str, int len, BOOL bNeedTrack)
 {
+    char space[16] = "&nbsp;";
+    char light[16] = "&lt;";
+    if(bNeedTrack){
+        curPos += len;//(MultiByteToWideChar (CP_ACP, 0, str, -1, NULL, 0) - 1);
+        if(*str == '\r'){
+            curPos--;
+        }
+
+        /* handle multi-byte character's leader byte*/
+        static bool bNeedSub = true;
+        if(*str<0){
+            if(bNeedSub){
+                curPos--;
+                bNeedSub = false;
+            }else{
+                bNeedSub = true;
+            }
+        }else{
+            if(!bNeedSub){
+                bNeedSub = true;
+            }
+        }
+        if(bNeedReplaceHtml){
+            if(bNeedSub){
+                switch (*str){
+                    case ' ':
+                        str = space;
+                        break;
+                    case '<':
+                        str = light;
+                        break;
+                    default:
+                        break;
+
+                }
+            }
+        }
+    }
     result += string(str);
 }
 
-void    TrackPosition(const char* str, int len)
+void    TrackPosition_noUse(const char* str, int len)
 {
     curPos += len;//(MultiByteToWideChar (CP_ACP, 0, str, -1, NULL, 0) - 1);
     if(*str == '\r'){
