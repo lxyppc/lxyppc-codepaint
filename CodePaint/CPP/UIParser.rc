@@ -72,8 +72,8 @@ IDR_MAINFRAME           ICON                    "res\\UIParser.ico"
 //
 
 IDD_UIPARSER_DIALOG DIALOGEX 0, 0, 494, 286
-STYLE DS_SETFONT | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | 
-    WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | 
+    WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 EXSTYLE WS_EX_APPWINDOW
 CAPTION "UIParser - by lxyppc"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
@@ -82,9 +82,9 @@ BEGIN
     CONTROL         "",IDC_RICHEDIT21,"RichEdit20A",ES_MULTILINE | 
                     ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_WANTRETURN | 
                     WS_BORDER | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP,7,7,480,
-                    122
+                    128
     PUSHBUTTON      "&Convert",IDC_CONVERT,7,266,46,13
-    COMBOBOX        IDC_LOG,351,267,80,219,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
+    COMBOBOX        IDC_LOG,365,267,66,219,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
                     WS_VSCROLL | WS_TABSTOP
     CONTROL         "Line Number",IDC_LINE_NUMBER,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,59,266,56,13
@@ -95,9 +95,9 @@ BEGIN
                     WS_TABSTOP
     CONTROL         "Auto Copy",IDC_CLIPBOARD,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,183,268,48,11
-    CONTROL         "Tab2Space   Size:",IDC_TAB2SPACE,"Button",
+    CONTROL         "Tab2Space  Tab Size:",IDC_TAB2SPACE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,242,268,71,11
-    EDITTEXT        IDC_TABSIZE,310,267,30,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_TABSIZE,323,267,30,12,ES_AUTOHSCROLL
 END
 
 
@@ -123,13 +123,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "TODO: <Company name>"
-            VALUE "FileDescription", "TODO: <File description>"
+            VALUE "CompanyName", "lxyppc"
+            VALUE "FileDescription", "Paint code in BBS"
             VALUE "FileVersion", "1.0.0.1"
             VALUE "InternalName", "UIParser.exe"
-            VALUE "LegalCopyright", "TODO: (c) <Company name>.  All rights reserved."
+            VALUE "LegalCopyright", "(c)lxyppc.  All rights reserved."
             VALUE "OriginalFilename", "UIParser.exe"
-            VALUE "ProductName", "TODO: <Product name>"
+            VALUE "ProductName", "Code Painter"
             VALUE "ProductVersion", "1.0.0.1"
         END
     END

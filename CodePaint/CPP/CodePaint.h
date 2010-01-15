@@ -46,6 +46,7 @@ struct  cpUISetting
     string      defaultStyle;
     BOOL        bTab2Space;
     int         tabSize;
+    RECT        windowRect;
 };
 
 typedef     map<string,COLORREF>    cpColorMap_t;
