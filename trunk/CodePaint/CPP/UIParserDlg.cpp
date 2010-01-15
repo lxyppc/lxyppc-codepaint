@@ -39,6 +39,7 @@ BEGIN_MESSAGE_MAP(CUIParserDlg, CDialog)
 	//}}AFX_MSG_MAP
     ON_EN_CHANGE(IDC_RICHEDIT21, &CUIParserDlg::OnEnChangeRichedit21)
     ON_BN_CLICKED(IDC_CONVERT, &CUIParserDlg::OnBnClickedConvert)
+    ON_WM_SIZE()
 END_MESSAGE_MAP()
 
 
@@ -114,6 +115,24 @@ void CUIParserDlg::OnEnChangeRichedit21()
     // TODO:  Add your control notification handler code here
 }
 
+void CUIParserDlg::OnSize(UINT nType, int cx, int cy)
+{
+    if(!GetSafeHwnd())return;
+    CWnd * p ;
+    LONG yPos = 5;
+    if(p=GetDlgItem(IDC_RICHEDIT21))p-> SetWindowPos(NULL,5,yPos,cx-10,(cy-50)/2,SWP_NOZORDER);
+    yPos += ((cy-50)/2 + 5);
+    if(p=GetDlgItem(IDC_EDIT1))p->      SetWindowPos(NULL,5,yPos,cx-10,(cy-50)/2,SWP_NOZORDER);
+    yPos += ((cy-50)/2 + 15);
+    if(p=GetDlgItem(IDC_CONVERT))p->    SetWindowPos(NULL,  5,yPos,80,20,SWP_NOZORDER);
+    if(p=GetDlgItem(IDC_LINE_NUMBER))p->SetWindowPos(NULL, 90,yPos,80,20,SWP_NOZORDER);
+    if(p=GetDlgItem(IDC_COMBO1))p->     SetWindowPos(NULL,180,yPos,80,20,SWP_NOZORDER);
+    if(p=GetDlgItem(IDC_LOG))p->        SetWindowPos(NULL,270,yPos,cx - 360,20,SWP_NOZORDER);
+    if(p=GetDlgItem(IDCANCEL))p->       SetWindowPos(NULL,cx-85,yPos,80,20,SWP_NOZORDER);
+    CDialog::OnSize(nType,cx,cy);
+}
+
+
 static int srcRemain = 0;   //< remain characters for the source text
 static int srcLength = 0;   //< length of the source text
 static char* lpSrc = NULL;  //< source buffer pointer
@@ -136,13 +155,18 @@ void CUIParserDlg::OnBnClickedConvert()
     m_sourceView.GetWindowText(str);
     if(m_textSrc)delete [] m_textSrc;
     m_textSrcLen = ::WideCharToMultiByte(CP_ACP,0,str,-1,NULL,0,NULL,NULL);
-	m_textSrc = new char[m_textSrcLen];
+	m_textSrc = new char[m_textSrcLen+2];
     if(!m_textSrc){
         AfxMessageBox(_T("Fail to allocate buffer for the text!"));
         return;
     }
     ::WideCharToMultiByte(CP_ACP,0,str,-1,m_textSrc,(int)m_textSrcLen,NULL,NULL);
-
+    if(m_textSrc[m_textSrcLen-2] != '\n'){
+        m_textSrc[m_textSrcLen-1] = '\r';
+        m_textSrc[m_textSrcLen] = '\n';
+        m_textSrc[m_textSrcLen+1] = 0;
+        m_textSrcLen+=2;
+    }
     /* Prepare data for the lex parser */
     lpSrc = m_textSrc;                      //< Set source buffer
     srcLength = 
@@ -194,7 +218,7 @@ void CUIParserDlg::OnBnClickedConvert()
     _tcscpy(cf.szFaceName,_T("Fixedsys"));
     cf.crTextColor = RGB(0,0,0);
     cf.yHeight = 180;
-    m_sourceView.SetSel(0,m_sourceView.GetTextLength()-1);
+    m_sourceView.SetSel(0,m_sourceView.GetTextLength());
     m_sourceView.SetSelectionCharFormat(cf);
 
     /* Highlight source text */

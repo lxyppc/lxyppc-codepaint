@@ -48,4 +48,6 @@ public:
     CComboBox m_style;
 public:
     vector<string>  m_styleList;
+public:
+    afx_msg void OnSize(UINT nType, int cx, int cy);
 };
