@@ -65,7 +65,7 @@ BOOL CUIParserDlg::OnInitDialog()
     if(m_styleList.size()){
         m_style.SetCurSel(0);
     }
-
+    ((CButton*)GetDlgItem(IDC_CLIPBOARD))->SetCheck(1);
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -127,7 +127,8 @@ void CUIParserDlg::OnSize(UINT nType, int cx, int cy)
     if(p=GetDlgItem(IDC_CONVERT))p->    SetWindowPos(NULL,  5,yPos,80,20,SWP_NOZORDER);
     if(p=GetDlgItem(IDC_LINE_NUMBER))p->SetWindowPos(NULL, 90,yPos,80,20,SWP_NOZORDER);
     if(p=GetDlgItem(IDC_COMBO1))p->     SetWindowPos(NULL,180,yPos,80,20,SWP_NOZORDER);
-    if(p=GetDlgItem(IDC_LOG))p->        SetWindowPos(NULL,270,yPos,cx - 360,20,SWP_NOZORDER);
+    if(p=GetDlgItem(IDC_CLIPBOARD))p->  SetWindowPos(NULL,270,yPos,80,20,SWP_NOZORDER);
+    if(p=GetDlgItem(IDC_LOG))p->        SetWindowPos(NULL,360,yPos,cx - 450,20,SWP_NOZORDER);
     if(p=GetDlgItem(IDCANCEL))p->       SetWindowPos(NULL,cx-85,yPos,80,20,SWP_NOZORDER);
     CDialog::OnSize(nType,cx,cy);
 }
@@ -199,17 +200,19 @@ void CUIParserDlg::OnBnClickedConvert()
     m_resultView.SetWindowText(CString(result.c_str()));
 
     /* Copy the result to clipboard */
-    if(OpenClipboard()){
-        if(EmptyClipboard()){
-            HGLOBAL hData = GlobalAlloc(GMEM_MOVEABLE, result.length() + 1);
-            memcpy(GlobalLock(hData), result.c_str(), result.length() + 1);
-            GlobalUnlock(hData);
-            if (::SetClipboardData(CF_TEXT, hData) == NULL){
-                AfxMessageBox(_T("Unable to set Clipboard data")); 
-            } 
+    if(((CButton*)GetDlgItem(IDC_CLIPBOARD))->GetCheck()){
+        if(OpenClipboard()){
+            if(EmptyClipboard()){
+                HGLOBAL hData = GlobalAlloc(GMEM_MOVEABLE, result.length() + 1);
+                memcpy(GlobalLock(hData), result.c_str(), result.length() + 1);
+                GlobalUnlock(hData);
+                if (::SetClipboardData(CF_TEXT, hData) == NULL){
+                    AfxMessageBox(_T("Unable to set Clipboard data")); 
+                } 
 
+            }
+            CloseClipboard();
         }
-        CloseClipboard();
     }
 
     /* Reset source text's format */
