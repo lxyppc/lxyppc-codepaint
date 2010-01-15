@@ -104,9 +104,6 @@ void CUIParserDlg::OnEnChangeRichedit21()
     // with the ENM_CHANGE flag ORed into the mask.
 
     // TODO:  Add your control notification handler code here
-    CString str;
-    CHARFORMAT cf;
-    m_sourceView.GetSelectionCharFormat(cf);
 }
 
 static int remain,max;
@@ -119,10 +116,17 @@ BOOL    bNeedLineNumber;
 char*   lnFormatComment;
 char*   lnFormatNormal;
 char*   currentFormat;
+int     curPos;
 void CUIParserDlg::OnBnClickedConvert()
 {
     // TODO: Add your control notification handler code here
     /* Convert rich edit text's format to char* */
+    {
+        CHARFORMAT cf;
+        m_sourceView.GetSelectionCharFormat(cf);
+        cf.crTextColor = RGB(0,0,0);
+    }
+
     CString str;
     m_sourceView.GetWindowText(str);
     if(m_textSrc)delete [] m_textSrc;
@@ -142,10 +146,30 @@ void CUIParserDlg::OnBnClickedConvert()
     lnFormatNormal = "/*%04d*/  ";
     bNeedLineNumber = TRUE;
     currentFormat = "ouravr";
-
+    curPos = 0;
     ParseStart();
     yylex();
     m_resultView.SetWindowText(result);
+
+    static CHARFORMAT  cf;// = {sizeof(CHARFORMAT)};
+    cf.dwMask = CFM_COLOR | CFM_FACE | CFM_SIZE;
+    _tcscpy(cf.szFaceName,_T("Fixedsys"));
+    cf.crTextColor = RGB(0,0,0);
+    cf.yHeight = 180;
+    m_sourceView.SetSel(0,m_sourceView.GetTextLength()-1);
+    m_sourceView.SetSelectionCharFormat(cf);
+
+    vector<cpCodeColor> colorStack;
+    cpGetColorStack(colorStack);
+    //cf.dwMask = CFM_COLOR;
+    for(size_t i=0;i<colorStack.size();i++){
+        m_sourceView.SetSel(colorStack[i].start,colorStack[i].end);
+        cf.crTextColor = colorStack[i].color;
+        m_sourceView.SetSelectionCharFormat(cf);
+    }
+    //m_sourceView.SetSel(0,8);
+    //cf.crTextColor = RGB(0,0,255);
+    //m_sourceView.SetSelectionCharFormat(cf);
 }
 
 
@@ -198,4 +222,12 @@ void StringLog(const char* str)
 void OutputString(const char* str, int len)
 {
     result += CString(str);
+}
+
+void    TrackPosition(const char* str, int len)
+{
+    curPos += (MultiByteToWideChar (CP_ACP, 0, str, -1, NULL, 0) - 1);
+    if(*str == '\r'){
+        curPos--;
+    }
 }

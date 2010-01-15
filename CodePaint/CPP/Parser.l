@@ -17,7 +17,8 @@ extern void StringLog(const char* str);
 #endif
 
 extern  void OutputString(const char* str, int len);
-#define     DIRECT_OUTPUT       OutputString(yytext,yyleng);
+extern  void TrackPosition(const char* str, int len);
+#define     DIRECT_OUTPUT       TrackPosition(yytext,yyleng);OutputString(yytext,yyleng);
 
 extern  BOOL    bNeedLineNumber;
 extern  char*   lnFormatComment;
@@ -30,7 +31,7 @@ extern  char*   currentFormat;
 
 hexNumber       0[xX][0-9abcdefABCDEF]+
 intNumber       [+-]?[0-9]+[Ll]?
-floatNumber     [+-]?[0-9]+"."[0-9]+[fF]?
+floatNumber     [+-]?[0-9]+"."[0-9]*[fF]?
 eNumber         [+-]?[0-9]+"."?[0-9]*[eE][+-]?[0-9]+
 number          {hexNumber}|{intNumber}|{floatNumber}|{eNumber}
 
@@ -132,8 +133,8 @@ Keyword_MSExt     dllexport|dllimport|naked|thread|uuid
                   }
 '                 {
                     PRINTF( (buf,"SString End") );
-                    cpResetCodeColor(currentFormat);
                     DIRECT_OUTPUT;
+                    cpResetCodeColor(currentFormat);
                     BEGIN(INITIAL);
                   }
 \\'               {
@@ -216,7 +217,7 @@ Keyword_MSExt     dllexport|dllimport|naked|thread|uuid
                         cpResetCodeColor(currentFormat);
                     }
 
-.		    { DIRECT_OUTPUT; }
+.                   { DIRECT_OUTPUT; }
 
 
 %%
@@ -233,7 +234,7 @@ void NewLine(BOOL bComment)
 {
     linesCount++;
     if(bNeedLineNumber){
-        cpSetCodeColor(currentFormat,"linenumber");
+        cpSetCodeColor(currentFormat,"linenumber",FALSE);
         char buf[1024]="";
         if(bComment){
             sprintf(buf,lnFormatComment,linesCount);
@@ -241,7 +242,7 @@ void NewLine(BOOL bComment)
             sprintf(buf,lnFormatNormal,linesCount);
         }
         OutputString(buf,0);
-        cpResetCodeColor(currentFormat);
+        cpResetCodeColor(currentFormat,FALSE);
     }
 }
 
