@@ -51,4 +51,6 @@ public:
     vector<string>  m_styleList;
 public:
     afx_msg void OnSize(UINT nType, int cx, int cy);
+    int m_tabSize;
+    afx_msg void OnBnClickedTab2space();
 };

@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "UIParser.h"
 #include "UIParserDlg.h"
+#include ".\uiparserdlg.h"
 
 
 #ifdef _DEBUG
@@ -20,6 +21,7 @@ CUIParserDlg::CUIParserDlg(CWnd* pParent /*=NULL*/)
     : CDialog(CUIParserDlg::IDD, pParent)
     ,m_textSrc(NULL)
     ,m_textSrcLen(0)
+    , m_tabSize(1)
 {
     m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -40,6 +42,7 @@ BEGIN_MESSAGE_MAP(CUIParserDlg, CDialog)
     ON_EN_CHANGE(IDC_RICHEDIT21, &CUIParserDlg::OnEnChangeRichedit21)
     ON_BN_CLICKED(IDC_CONVERT, &CUIParserDlg::OnBnClickedConvert)
     ON_WM_SIZE()
+    ON_BN_CLICKED(IDC_TAB2SPACE, OnBnClickedTab2space)
 END_MESSAGE_MAP()
 
 
@@ -73,15 +76,26 @@ BOOL CUIParserDlg::OnInitDialog()
     }
     ((CButton*)GetDlgItem(IDC_CLIPBOARD))->SetCheck(uiSet.bAutoCopy);
     ((CButton*)GetDlgItem(IDC_LINE_NUMBER))->SetCheck(uiSet.bNeedLineNumber);
+    ((CButton*)GetDlgItem(IDC_TAB2SPACE))->SetCheck(uiSet.bTab2Space);
+    ((CButton*)GetDlgItem(IDC_TABSIZE))->EnableWindow(uiSet.bTab2Space);
+    m_tabSize = uiSet.tabSize;
+    CString s;
+    s.Format(_T("%d"),m_tabSize);
+    ((CButton*)GetDlgItem(IDC_TABSIZE))->SetWindowText(s);
     return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
 void CUIParserDlg::OnCancel()
 {
     cpUISetting uiSet;
+    UpdateData();
     uiSet.defaultStyle = m_styleList[m_style.GetCurSel()];
     uiSet.bAutoCopy = ((CButton*)GetDlgItem(IDC_CLIPBOARD))->GetCheck();
     uiSet.bNeedLineNumber = ((CButton*)GetDlgItem(IDC_LINE_NUMBER))->GetCheck();
+    uiSet.bTab2Space = ((CButton*)GetDlgItem(IDC_TAB2SPACE))->GetCheck();
+    CString s;
+    ((CButton*)GetDlgItem(IDC_TABSIZE))->GetWindowText(s);
+    uiSet.tabSize = m_tabSize = _ttoi(s);
     cpSetUISetting(uiSet);
     __super::OnCancel();
 }
@@ -145,7 +159,11 @@ void CUIParserDlg::OnSize(UINT nType, int cx, int cy)
     if(p=GetDlgItem(IDC_LINE_NUMBER))p->SetWindowPos(NULL, 90,yPos,80,20,SWP_NOZORDER);
     if(p=GetDlgItem(IDC_COMBO1))p->     SetWindowPos(NULL,180,yPos,80,20,SWP_NOZORDER);
     if(p=GetDlgItem(IDC_CLIPBOARD))p->  SetWindowPos(NULL,270,yPos,80,20,SWP_NOZORDER);
-    if(p=GetDlgItem(IDC_LOG))p->        SetWindowPos(NULL,360,yPos,cx - 450,20,SWP_NOZORDER);
+    if(p=GetDlgItem(IDC_TAB2SPACE))p->     SetWindowPos(NULL,360,yPos,120,20,SWP_NOZORDER);
+    if(p=GetDlgItem(IDC_TABSIZE))p->  SetWindowPos(NULL,480,yPos,30,20,SWP_NOZORDER);
+
+
+    if(p=GetDlgItem(IDC_LOG))p->        SetWindowPos(NULL,520,yPos,cx - 610,20,SWP_NOZORDER);
     if(p=GetDlgItem(IDCANCEL))p->       SetWindowPos(NULL,cx-85,yPos,80,20,SWP_NOZORDER);
     CDialog::OnSize(nType,cx,cy);
 }
@@ -165,6 +183,9 @@ char*   lnFormatNormal;     //< line number format for normal code
 char*   currentFormat;      //< current format style, e.g. "ouravr"
 int     curPos;             //< current source character position
 BOOL    bNeedReplaceHtml;   //< replace html special character or not
+BOOL    bTab2Space;         //< change tab to space
+int     tabSize;            //< tab size
+int     colPos;             //< column position, used for set tab
 void CUIParserDlg::OnBnClickedConvert()
 {
     // TODO: Add your control notification handler code here
@@ -202,6 +223,21 @@ void CUIParserDlg::OnBnClickedConvert()
         bNeedLineNumber = TRUE;
     }else{
         bNeedLineNumber = FALSE;
+    }
+    /* replace tab to space or not */
+    tabSize = 0;
+    bTab2Space = FALSE;
+    colPos = 0;
+    if(((CButton*)GetDlgItem(IDC_TAB2SPACE))->GetCheck()){
+        CString s;
+        ((CButton*)GetDlgItem(IDC_TABSIZE))->GetWindowText(s);
+        m_tabSize = _ttoi(s);
+        if(m_tabSize>0 && m_tabSize<21){
+            tabSize = m_tabSize;
+            bTab2Space = TRUE;
+        }else{
+            AfxMessageBox(_T("Tab size error"));
+        }
     }
     static char curStyle[1024] = "";
     if(m_style.GetCurSel() >=0 && m_style.GetCurSel() < m_styleList.size()){
@@ -256,6 +292,12 @@ void CUIParserDlg::OnBnClickedConvert()
     }
 }
 
+void CUIParserDlg::OnBnClickedTab2space()
+{
+    ((CButton*)GetDlgItem(IDC_TABSIZE))->EnableWindow(
+        ((CButton*)GetDlgItem(IDC_TAB2SPACE))->GetCheck()
+        );
+}
 
 /**
  Override the default YY_INPUT method, get the characters from the rich edit box
@@ -287,11 +329,16 @@ void OutputString(const char* str, int len, BOOL bNeedTrack)
 {
     char space[16] = "&nbsp;";
     char light[16] = "&lt;";
+                  //12345678901234567890
+    char tab[21] = "                    ";
+    string htmlSpace;
     if(bNeedTrack){
         curPos += len;//(MultiByteToWideChar (CP_ACP, 0, str, -1, NULL, 0) - 1);
         if(*str == '\r'){
             curPos--;
         }
+        colPos += len;
+        if(*str == '\n')colPos = 0;
 
         /* handle multi-byte character's leader byte*/
         static bool bNeedSub = true;
@@ -318,12 +365,24 @@ void OutputString(const char* str, int len, BOOL bNeedTrack)
                         break;
                     default:
                         break;
-
                 }
             }
         }
+        if(bTab2Space && *str == '\t' && bNeedSub){
+            int tabCnt = tabSize - (colPos-1)%tabSize;
+            tab[tabSize - (colPos-1)%tabSize] = 0;
+            colPos+= (tabCnt-1);
+            str = tab;
+            if(bNeedReplaceHtml){
+                htmlSpace = "";
+                for(int i = 0;i<tabCnt;i++){
+                    htmlSpace += space;
+                }
+                str = htmlSpace.c_str();
+            }
+        }
     }
-    result += string(str);
+    result += str;
 }
 
 void    TrackPosition_noUse(const char* str, int len)
@@ -348,3 +407,4 @@ void    TrackPosition_noUse(const char* str, int len)
         }
     }
 }
+
