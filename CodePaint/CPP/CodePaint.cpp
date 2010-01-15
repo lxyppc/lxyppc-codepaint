@@ -105,7 +105,7 @@ void    cpResetCodeColor(const string& formatName, BOOL bNeedTrack)
         it1 += (cpPosStack.size() - 1);
         if(it1 != cpPosStack.end()){
             it1->end = curPos;
-            {
+            if(0){
                 char buf[1024] = "";
                 sprintf(buf,"Color: 0x%06X, Start: %d, End: %d",
                     it1->color,it1->start, it1->end);

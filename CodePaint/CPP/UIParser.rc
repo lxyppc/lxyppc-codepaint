@@ -83,7 +83,7 @@ BEGIN
                     ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_WANTRETURN | 
                     WS_BORDER | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP,7,7,480,
                     122
-    PUSHBUTTON      "&Convert",IDC_CONVERT,7,266,58,13
+    PUSHBUTTON      "&Convert",IDC_CONVERT,7,266,46,13
     COMBOBOX        IDC_LOG,164,267,252,219,CBS_DROPDOWN | CBS_AUTOHSCROLL | 
                     WS_VSCROLL | WS_TABSTOP
     CONTROL         "",IDC_RICHEDIT22,"RichEdit20A",ES_MULTILINE | 
@@ -91,7 +91,8 @@ BEGIN
                     WS_BORDER | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP,7,140,
                     480,117
     CONTROL         "Line Number",IDC_LINE_NUMBER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,82,266,56,13
+                    WS_TABSTOP,102,266,56,13
+    PUSHBUTTON      "Clear",IDC_BUTTON1,61,267,38,12
 END
 
 
