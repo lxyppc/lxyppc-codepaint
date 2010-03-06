@@ -80,6 +80,9 @@ void    cpResetColorStack()
  */
 void    cpSetCodeColor(const string& formatName, const string& colorName, BOOL bNeedTrack)
 {
+    if(colorName == "string"){
+        cpBeginString();
+    }
     cpColorFormat_t::iterator it = cpColorFormat.find(formatName);
     if(it == cpColorFormat.end()){
         return;
@@ -111,6 +114,7 @@ void StringLog(const char* str);
  */
 void    cpResetCodeColor(const string& formatName, BOOL bNeedTrack)
 {
+    cpEndString();
     cpColorFormat_t::iterator it = cpColorFormat.find(formatName);
     if(it == cpColorFormat.end()){
         return;
@@ -525,4 +529,124 @@ void    cpSetUISetting(const cpUISetting& uiSetting)
             "Bottom",
             tmpStr,IniName
             );
+}
+
+using std::wstring;
+static  bStringMode = FALSE;
+static  bStringScan = FALSE;
+static  string strBuffer;
+static  string strTotal;
+static  map<wchar_t,int>    strTable;
+static  wstring wTotal;
+static  BOOL    bEnableReplace = FALSE;
+#define     ENCODE_START            0x80
+void    cpEnableReplace(BOOL bEnable)
+{
+    bEnableReplace = bEnable;
+}
+wstring toWString(const string& str)
+{
+    int len = ::MultiByteToWideChar(CP_ACP,0,str.c_str(),-1,NULL,0);
+    wchar_t *pStr = new wchar_t[len+1];
+    ::MultiByteToWideChar(CP_ACP,0,str.c_str(),-1,pStr,len+1);
+    /// InitialDevice(pStr);
+    wstring res(pStr);
+    delete [] pStr;
+    return res;
+}
+string toString(const wstring& str)
+{
+    int len = ::WideCharToMultiByte(CP_ACP,0,str.c_str(),-1,NULL,0,NULL,NULL);
+	char *pStr = new char[len+1];
+	::WideCharToMultiByte(CP_ACP,0,str.c_str(),-1,pStr,len+1,NULL,NULL);
+	string res(pStr);
+	delete [] pStr;
+	return res;
+}
+
+void    cpStringScanMode(BOOL bScanMode)
+{
+    if(!bEnableReplace)return;
+    bStringScan = bScanMode;
+    if(!bStringScan){
+        wstring res(toWString(strTotal));
+        for(size_t i=0;i<res.length();i++){
+            if(res[i]>127){
+                strTable[res[i]] = 0;
+            }
+        }
+        map<wchar_t,int>::iterator it = strTable.begin();
+        wTotal = L"";
+        int i=0;
+        for(;it!=strTable.end();it++){
+            it->second = i++;
+            wTotal += it->first;
+        }
+    }else{
+        strTable.clear();
+        strTotal = "";
+        strBuffer = "";
+        wTotal = L"";
+    }
+}
+
+void    cpBeginString()
+{
+    if(!bEnableReplace)return;
+    bStringMode = TRUE;
+    strBuffer = "";
+    if(!bStringScan){
+        OutputString("/*",0);
+    }
+}
+void    cpEndString()
+{
+    if(!bEnableReplace)return;
+    if(bStringMode){
+        bStringMode = FALSE;
+        strTotal+=strBuffer;
+        if(!bStringScan){
+            // replace the chinese characters
+            OutputString("*/",0);
+            wstring curStr(toWString(strBuffer));
+            string res;
+            for(size_t i=0;i<curStr.length();i++){
+                if(curStr[i]>127){
+                    char buf[16] = "";
+                    sprintf(buf,"\\x%02X",strTable[curStr[i]]+ENCODE_START);
+                    res += buf;
+                }else{
+                    wstring tmp =L"s";
+                    tmp[0] = curStr[i];
+                    res += toString( tmp);
+                }
+            }
+            OutputString(res.c_str(),0);
+        }
+    }
+}
+void    cpGetString(const char* str, int len)
+{
+    if(!bEnableReplace)return;
+    if(bStringMode){
+        while(len--){
+            strBuffer += *str++;
+        }
+    }
+}
+
+void    cpStringReplaceOverView()
+{
+    if(!bEnableReplace)return;
+    if(wTotal.length()){
+        OutputString("\r\n/* Replaced strings:\r\n    ",0);
+        OutputString(toString(wTotal).c_str(),0);
+        OutputString("\r\n    ",0);
+        for(size_t i=0;i<wTotal.length();i++){
+            char buf[32] = "";
+            sprintf(buf,"%02X", strTable[wTotal[i]]+ENCODE_START);
+            OutputString(buf,0);
+        }
+        OutputString("\r\n*/\r\n",0);
+    }
 }

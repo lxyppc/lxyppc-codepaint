@@ -252,12 +252,36 @@ void CUIParserDlg::OnBnClickedConvert()
     }
     bNeedReplaceHtml = cpIsNeedReplaceHtml(curStyle);
     currentFormat = curStyle;                 //< set color sytle
-    result += cpStartTag(curStyle);
-    curPos = 0;                             //< Initial position
-    cpResetColorStack();                    //< Reset color stack
-    ParseStart();                           //< 
-    yylex();
-    result += cpEndTag(curStyle);
+
+    BOOL    repeat = FALSE;
+    if(strcmp(currentFormat,"replace") == 0){
+        repeat = TRUE;
+        cpEnableReplace(TRUE);
+    }else{
+        cpEnableReplace(FALSE);
+    }
+    do{
+        cpStringScanMode(repeat);
+        result += cpStartTag(curStyle);
+        curPos = 0;                             //< Initial position
+        cpResetColorStack();                    //< Reset color stack
+        ParseStart();                           //< 
+        yylex();
+        result += cpEndTag(curStyle);
+        if(repeat){
+            repeat = FALSE;
+            result = string("");
+            lpSrc = m_textSrc;                      //< Set source buffer
+            srcLength = 
+                srcRemain = (int)m_textSrcLen;      //< Set source iterator
+            continue;
+        }else{
+            cpStringReplaceOverView();
+            break;
+        }
+    }while(1);
+
+
     m_resultView.SetWindowText(CString(result.c_str()));
 
     /* Copy the result to clipboard */
@@ -331,6 +355,7 @@ void StringLog(const char* str)
 
 void OutputString(const char* str, int len, BOOL bNeedTrack)
 {
+    cpGetString(str,len);
     char space[16] = "&nbsp;";
     char light[16] = "&lt;";
                   //12345678901234567890

@@ -70,3 +70,11 @@ void    cpGetNewline(const string& formatName);
 BOOL    cpIsNeedReplaceHtml(const string& formatName);
 string  cpStartTag(const string& formatName);
 string  cpEndTag(const string& formatName);
+
+
+void    cpStringScanMode(BOOL bScanMode);
+void    cpBeginString();
+void    cpEndString();
+void    cpGetString(const char* str, int len);
+void    cpStringReplaceOverView();
+void    cpEnableReplace(BOOL bEnable);
