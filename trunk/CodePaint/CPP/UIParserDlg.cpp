@@ -284,14 +284,16 @@ void CUIParserDlg::OnBnClickedConvert()
 
     m_resultView.SetWindowText(CString(result.c_str()));
 
+    wstring wresult(toWString(result));
+
     /* Copy the result to clipboard */
     if(((CButton*)GetDlgItem(IDC_CLIPBOARD))->GetCheck()){
         if(OpenClipboard()){
             if(EmptyClipboard()){
-                HGLOBAL hData = GlobalAlloc(GMEM_MOVEABLE, result.length() + 1);
-                memcpy(GlobalLock(hData), result.c_str(), result.length() + 1);
+                HGLOBAL hData = GlobalAlloc(GMEM_MOVEABLE, wresult.length()*2 + 2);
+                memcpy(GlobalLock(hData), wresult.c_str(), wresult.length()*2 + 2);
                 GlobalUnlock(hData);
-                if (::SetClipboardData(CF_TEXT, hData) == NULL){
+                if (::SetClipboardData(CF_UNICODETEXT/*CF_TEXT*/, hData) == NULL){
                     AfxMessageBox(_T("Unable to set Clipboard data")); 
                 } 
 

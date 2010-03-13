@@ -5,8 +5,6 @@
 #include "afxcmn.h"
 #include "afxwin.h"
 #include "CodePaint.h"
-#include <string>
-using       std::string;
 // CUIParserDlg dialog
 class CUIParserDlg : public CDialog
 {
