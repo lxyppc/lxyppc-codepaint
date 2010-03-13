@@ -661,9 +661,9 @@ void    cpStringReplaceOverView()
 {
     if(!bEnableReplace)return;
     if(wTotal.length()){
-        OutputString("\r\n/* Replaced strings:\r\n",0);
-        //OutputString(toString(wTotal).c_str(),0);
-        //OutputString("\r\n",0);
+        OutputString("\r\n/** Replaced strings:\r\n      ",0);
+        OutputString(toString(wTotal).c_str(),0);
+        OutputString("\r\n\r\nString Lookup Table:\r\n",0);
         size_t totalLeng = wTotal.length();
         size_t index = 0;
         while(totalLeng){
@@ -694,6 +694,6 @@ void    cpStringReplaceOverView()
         //    sprintf(buf,"%02X", strTable[wTotal[i]]+ENCODE_START);
         //    OutputString(buf,0);
         //}
-        OutputString("\r\n*/\r\n",0);
+        OutputString("*/\r\n",0);
     }
 }
