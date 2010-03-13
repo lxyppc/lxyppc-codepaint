@@ -31,6 +31,7 @@ struct {
     {"ouravr",  "<font color=#%06X>",   "</font>"   , "", "", FALSE},
     {"21ic",    "[color=#%06X]",        "[/color]"  , "", "", FALSE},
     {"pic16",   "<FONT color=#%06X>",   "</FONT>"   , "<DIV class=quote>", "</DIV>", TRUE},
+    {"replace",   "",   ""   , "", "", 0},
 };
 
 static void    cpLoadSettingFromIni();
@@ -531,7 +532,10 @@ void    cpSetUISetting(const cpUISetting& uiSetting)
             );
 }
 
+#include <list>;
+using std::list;
 using std::wstring;
+using std::vector;
 static  bStringMode = FALSE;
 static  bStringScan = FALSE;
 static  string strBuffer;
@@ -539,6 +543,8 @@ static  string strTotal;
 static  map<wchar_t,int>    strTable;
 static  wstring wTotal;
 static  BOOL    bEnableReplace = FALSE;
+static  vector<BOOL>         needReplaceTable;
+static  size_t needReplaceTableIndex = 0;
 #define     ENCODE_START            0x80
 void    cpEnableReplace(BOOL bEnable)
 {
@@ -569,6 +575,7 @@ void    cpStringScanMode(BOOL bScanMode)
     if(!bEnableReplace)return;
     bStringScan = bScanMode;
     if(!bStringScan){
+        needReplaceTableIndex = 0;
         wstring res(toWString(strTotal));
         for(size_t i=0;i<res.length();i++){
             if(res[i]>127){
@@ -583,6 +590,8 @@ void    cpStringScanMode(BOOL bScanMode)
             wTotal += it->first;
         }
     }else{
+        needReplaceTable.clear();
+        needReplaceTableIndex = 0;
         strTable.clear();
         strTotal = "";
         strBuffer = "";
@@ -595,7 +604,7 @@ void    cpBeginString()
     if(!bEnableReplace)return;
     bStringMode = TRUE;
     strBuffer = "";
-    if(!bStringScan){
+    if(!bStringScan && needReplaceTable[needReplaceTableIndex]){
         OutputString("/*",0);
     }
 }
@@ -607,21 +616,34 @@ void    cpEndString()
         strTotal+=strBuffer;
         if(!bStringScan){
             // replace the chinese characters
-            OutputString("*/",0);
-            wstring curStr(toWString(strBuffer));
             string res;
+            if(needReplaceTable[needReplaceTableIndex]){
+                OutputString("*/",0);
+                wstring curStr(toWString(strBuffer));
+                for(size_t i=0;i<curStr.length();i++){
+                    if(curStr[i]>127){
+                        char buf[16] = "";
+                        sprintf(buf,"\\x%02X",strTable[curStr[i]]+ENCODE_START);
+                        res += buf;
+                    }else{
+                        wstring tmp =L"s";
+                        tmp[0] = curStr[i];
+                        res += toString( tmp);
+                    }
+                }
+                OutputString(res.c_str(),0);
+            }
+            needReplaceTableIndex++;
+        }else{
+            wstring curStr(toWString(strBuffer));
+            BOOL bContainChinese = FALSE;
             for(size_t i=0;i<curStr.length();i++){
                 if(curStr[i]>127){
-                    char buf[16] = "";
-                    sprintf(buf,"\\x%02X",strTable[curStr[i]]+ENCODE_START);
-                    res += buf;
-                }else{
-                    wstring tmp =L"s";
-                    tmp[0] = curStr[i];
-                    res += toString( tmp);
+                    bContainChinese = TRUE;
+                    break;
                 }
             }
-            OutputString(res.c_str(),0);
+            needReplaceTable.push_back(bContainChinese);
         }
     }
 }
@@ -639,14 +661,39 @@ void    cpStringReplaceOverView()
 {
     if(!bEnableReplace)return;
     if(wTotal.length()){
-        OutputString("\r\n/* Replaced strings:\r\n    ",0);
-        OutputString(toString(wTotal).c_str(),0);
-        OutputString("\r\n    ",0);
-        for(size_t i=0;i<wTotal.length();i++){
-            char buf[32] = "";
-            sprintf(buf,"%02X", strTable[wTotal[i]]+ENCODE_START);
-            OutputString(buf,0);
+        OutputString("\r\n/* Replaced strings:\r\n",0);
+        //OutputString(toString(wTotal).c_str(),0);
+        //OutputString("\r\n",0);
+        size_t totalLeng = wTotal.length();
+        size_t index = 0;
+        while(totalLeng){
+            size_t limit = totalLeng>16 ? 16 : totalLeng;
+            string resStr(  "     Char: ");
+            string resValue("    Value: ");
+            for(size_t i=0; i<limit; i++){
+                wchar_t ch[4] = {wTotal[index++],L' ',0};
+                resStr += toString(ch);
+                char stmp[16];
+                sprintf(stmp,"%02X ", strTable[ch[0]]+ENCODE_START);
+                resValue += stmp;
+            }
+
+            OutputString(resStr.c_str(),0);
+            OutputString("\r\n",0);
+            OutputString(resValue.c_str(),0);
+            OutputString("\r\n",0);
+            if(totalLeng > 16){
+                totalLeng -= 16;
+            }else{
+                totalLeng = 0;
+            }
         }
+
+        //for(size_t i=0;i<wTotal.length();i++){
+        //    char buf[32] = "";
+        //    sprintf(buf,"%02X", strTable[wTotal[i]]+ENCODE_START);
+        //    OutputString(buf,0);
+        //}
         OutputString("\r\n*/\r\n",0);
     }
 }

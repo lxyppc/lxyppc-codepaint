@@ -6,8 +6,11 @@
 #include <vector>
 using   std::map;
 using   std::string;
+using   std::wstring;
 using   std::vector;
 
+wstring toWString(const string& str);
+string toString(const wstring& str);
 
 struct cpColorSF{
     string set;
